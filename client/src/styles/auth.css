@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+/* --- THEME & COLOR VARIABLES --- */
+:root {
+    --bg-color: #f0f2f5;
+    --container-bg: #fff;
+    --accent-gradient: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    --accent-color: #3b82f6;
+    --text-color: #333;
+    --border-color: #e0e0e0;
+    --input-bg: #f8f9fa;
+}
+
+/* --- BASE & SCROLLBAR STYLES --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    font-family: 'Poppins', sans-serif;
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: #c5c5c5; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+/* --- MAIN CONTAINER --- */
+/* minimize expensive transitions on layout while resizing */
+.container {
+    position: relative;
+    width: 850px;
+    height: 650px;
+    background: var(--container-bg);
+    border-radius: 30px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+    overflow: hidden;
+    /* avoid animating width/height; keep small smoothness for visuals */
+    transition: box-shadow 0.2s ease;
+}
+
+h1 {
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* --- FORM BOXES (desktop behavior) --- */
+/* Desktop: two halves, absolutely positioned and sliding via transform */
+.form-box {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 40px;
+    /* GPU-friendly properties only */
+    transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.45s ease;
+    overflow-y: auto;
+    will-change: transform, opacity;
+    pointer-events: none; /* disabled by default; enabled on active */
+    opacity: 0;
+    z-index: 1;
+}
+.form-box form {
+    width: 100%;
+    max-width: 350px;
+    padding: 30px 0;
+}
+.form-group { margin-bottom: 20px; }
+
+/* Login shown by default on desktop */
+.form-box.login {
+    left: 0;
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 2;
+}
+
+/* Register starts off-screen to the right (visible when activated) */
+.form-box.register {
+    right: 0;
+    transform: translateX(100%); /* move fully off its own width to the right */
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* When the container has signup-active, swap them with transforms */
+.container.signup-active .form-box.login {
+    transform: translateX(-100%); /* move login left and out */
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+.container.signup-active .form-box.register {
+    transform: translateX(0); /* bring register into right half */
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 2;
+}
+
+/* --- INPUTS AND FIELDS --- */
+.input-box { position: relative; }
+.input-box input, .dropdown select {
+    width: 100%;
+    padding: 12px 45px 12px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background-color: var(--input-bg);
+    outline: none;
+    font-size: 16px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+.dropdown select { padding: 12px 15px; }
+.input-box input:focus, .dropdown select:focus {
+    border-color: var(--accent-color);
+    background-color: var(--container-bg);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+.input-box i {
+    position: absolute;
+    right: 15px; top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    cursor: pointer;
+}
+
+/* --- VALIDATION DISPLAY BOX --- */
+.validation-box {
+    background-color: var(--input-bg);
+    border-radius: 10px;
+    padding: 10px 15px;
+    margin-top: 8px;
+    text-align: left;
+}
+.validation-box p {
+    margin: 6px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+.validation-box.hide, .validation-box.hidden { display: none; }
+.validation-box.show, .validation-box.visible { display: block; }
+
+/* --- BUTTONS & LINKS --- */
+.button {
+    width: 100%; padding: 14px 20px; margin-top: 10px; border: none;
+    border-radius: 12px; background: var(--accent-gradient); color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    text-transform: uppercase;
+}
+.button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.22);
+}
+.remember-forgot { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; font-size: 14px; }
+.remember-me { display: flex; align-items: center; cursor: pointer; color: var(--text-color); }
+.remember-me input { margin-right: 8px; accent-color: var(--accent-color); }
+.forgot-link { color: var(--accent-color); text-decoration: none; font-weight: 500; }
+.forgot-link:hover { text-decoration: underline; }
+
+/* --- TOGGLE & OVERLAY --- */
+.toggle-container {
+    position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
+    overflow: hidden; transition: transform 0.6s cubic-bezier(.2,.8,.2,1); z-index: 10;
+}
+.toggle-overlay {
+    background: var(--accent-gradient); color: #fff; position: relative; left: -100%;
+    height: 100%; width: 200%; transform: translateX(0); transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+}
+.toggle-panel {
+    position: absolute; top: 0; width: 50%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 40px; transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+}
+.toggle-panel h1 { color: white; }
+.toggle-left { transform: translateX(-200%); left: 0; }
+.toggle-right { right: 0; transform: translateX(0); }
+.toggle-button {
+    padding: 12px 30px; background: transparent; border: 2px solid white;
+    color: white; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: all 0.3s ease;
+}
+.toggle-button:hover { background: white; color: var(--accent-color); }
+
+/* overlay movement on active */
+.container.signup-active .toggle-container { transform: translateX(-100%); }
+.container.signup-active .toggle-overlay { transform: translateX(50%); }
+.container.signup-active .toggle-left { transform: translateX(0); }
+.container.signup-active .toggle-right { transform: translateX(200%); }
+
+/* --- MOBILE & RESPONSIVE (<= 900px) --- */
+/*
+  On mobile we stop using absolute halves and instead stack forms vertically.
+  We avoid display: none toggles during transition; use max-height + opacity for smoothness.
+*/
+.mobile-toggle {
+    display: none; margin-top: 20px; font-size: 14px; color: #666; text-align: center;
+}
+.mobile-toggle span {
+    font-weight: 600; color: var(--accent-color); cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .container {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    /* hide overlay on small screens */
+    .toggle-container { display: none; }
+
+    /* make forms flow in document (no overlapping absolute positioning) */
+    .form-box {
+        position: relative;
+        width: 100%;
+        left: auto;
+        right: auto;
+        height: auto;
+        padding: 20px 30px;
+        transform: none !important;
+        transition: max-height 0.45s ease, opacity 0.35s ease;
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+    }
+
+    /* We'll collapse the inactive form using max-height */
+    .form-box.register,
+    .form-box.login {
+        overflow: hidden;
+        max-height: 0; /* collapsed by default for register */
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    /* Show the login by default on small screens */
+    .form-box.login {
+        max-height: 2000px;
+        opacity: 1;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* When signup is active, swap the collapsed states */
+    .container.signup-active .form-box.login {
+        max-height: 0;
+        opacity: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    .container.signup-active .form-box.register {
+        max-height: 2000px; /* large enough to show the full form */
+        opacity: 1;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
+
+    .mobile-toggle { display: block; }
+}
+
+/* extra small screens: make container take full height */
+@media (max-width: 600px) {
+    .container { min-height: 100vh; }
+    .form-box form { padding: 10px 0; }
+}

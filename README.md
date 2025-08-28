@@ -39,10 +39,11 @@ This will start:
 
 ## 👥 Team Members & Responsibilities
 
-- **Member 1**: Authentication System (Login/Register)
-- **Member 2**: Citizen Dashboard & Job Posting
-- **Member 3**: Worker Dashboard & Applications
-- **Member 4**: Admin Panel & Shared Components
+- **Member 1**: Md Saif Ahmed
+- **Member 2**: Md Shihab Ahmed
+- **Member 3**: Md Ragib Hossain
+- **Member 4**: Md Arafat Hasan
+- **Member 5**: Md Saifuddin Shawon
 
 ## 📱 Features
 

@@ -1,5 +1,7 @@
 const app = require('./app');
 const { initializeDatabase, closeDatabase } = require('./config/database');
+require('dotenv').config();
+console.log("Loaded JWT_SECRET:", process.env.JWT_SECRET ? "✅ defined" : "❌ undefined");
 
 const PORT = process.env.PORT || 5000;
 
