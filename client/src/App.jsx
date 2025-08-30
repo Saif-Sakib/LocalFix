@@ -4,6 +4,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthPage from './pages/auth/AuthPage';
+import AdminDashboard from './pages/admin/dashboard'
+import CitizenDashboard from './pages/citizen/dashboard';
+import WorkerDashboard from './pages/worker/dashboard';
 import './index.css';
 
 // Protected Route Component
@@ -35,32 +38,32 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 };
 
 // Dashboard Components (Temporary)
-const CitizenDashboard = () => (
-  <div style={{ padding: '20px', textAlign: 'center' }}>
-    <h1>🏠 Citizen Dashboard</h1>
-    <p>Welcome to your citizen dashboard!</p>
-    <p>Here you can post local issues and manage your submissions.</p>
-    <LogoutButton />
-  </div>
-);
+// const CitizenDashboard = () => (
+//   <div style={{ padding: '20px', textAlign: 'center' }}>
+//     <h1>🏠 Citizen Dashboard</h1>
+//     <p>Welcome to your citizen dashboard!</p>
+//     <p>Here you can post local issues and manage your submissions.</p>
+//     <LogoutButton />
+//   </div>
+// );
 
-const WorkerDashboard = () => (
-  <div style={{ padding: '20px', textAlign: 'center' }}>
-    <h1>🔧 Worker Dashboard</h1>
-    <p>Welcome to your worker dashboard!</p>
-    <p>Here you can browse and apply for jobs.</p>
-    <LogoutButton />
-  </div>
-);
+// const WorkerDashboard = () => (
+//   <div style={{ padding: '20px', textAlign: 'center' }}>
+//     <h1>🔧 Worker Dashboard</h1>
+//     <p>Welcome to your worker dashboard!</p>
+//     <p>Here you can browse and apply for jobs.</p>
+//     <LogoutButton />
+//   </div>
+// );
 
-const AdminDashboard = () => (
-  <div style={{ padding: '20px', textAlign: 'center' }}>
-    <h1>👨‍💼 Admin Dashboard</h1>
-    <p>Welcome to your admin panel!</p>
-    <p>Here you can manage users, review applications, and oversee the platform.</p>
-    <LogoutButton />
-  </div>
-);
+// const AdminDashboard = () => (
+//   <div style={{ padding: '20px', textAlign: 'center' }}>
+//     <h1>👨‍💼 Admin Dashboard</h1>
+//     <p>Welcome to your admin panel!</p>
+//     <p>Here you can manage users, review applications, and oversee the platform.</p>
+//     <LogoutButton />
+//   </div>
+// );
 
 const LogoutButton = () => {
   const { logout, user } = useAuth();
@@ -69,7 +72,10 @@ const LogoutButton = () => {
     <div style={{ marginTop: '20px' }}>
       <p>Logged in as: <strong>{user?.name}</strong> ({user?.user_type})</p>
       <button 
-        onClick={logout}
+        onClick={() => {
+          logout();
+          window.location.href = '/auth';
+        }}
         style={{
           padding: '10px 20px',
           background: '#dc3545',
