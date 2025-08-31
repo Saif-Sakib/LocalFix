@@ -102,7 +102,10 @@ function AdminDashboard() {
                         <i className="bx bx-log-out"> Logout</i>
                     </button>
                 </header>
-                <div> {RenderContent()} </div>
+                <div className="main-container">
+                    {RenderContent()}
+                    {/* <h1>hi there</h1> */}
+                </div>
             </div>
         </div>
 	);
