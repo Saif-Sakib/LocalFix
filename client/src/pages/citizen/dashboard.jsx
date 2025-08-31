@@ -2,6 +2,7 @@ import React,{useState} from "react";
 import { useAuth } from "../../context/AuthContext";
 import Profile from "../common/profile/profile"
 import "../../styles/dashboard.css";
+import CitizenIssue from "./CitizenIssue"
 
 function CitizenDashboard() {
 
@@ -16,8 +17,8 @@ function CitizenDashboard() {
             //     return <Home />;
             case "Profile":
                 return <Profile />;
-            // case "Issues":
-            //     return <Issues />;
+            case "Issues":
+                return <CitizenIssue />;
             // case "Applications":
             //     return <Applications />;
             // case "Review Problems":
@@ -55,26 +56,26 @@ function CitizenDashboard() {
                             <i className="bx bx-user"> Profile</i>
                         </button>
 
-                        <button
+                        {/* <button
                             onClick={() => setCurrentTab("Applications")}
                             style={currentTab === "Applications" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-check"> Total Applications</i>
-                        </button>
+                        </button> */}
 
                         <button
                             onClick={() => setCurrentTab("Issues")}
                             style={currentTab === "Issues" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
-                            <i className="bx bx-time"> View Issues</i>
+                            <i className="bx bx-time"> Add Issue</i>
                         </button>
 
-                        <button
+                        {/* <button
                             onClick={() => setCurrentTab("Review Problems")}
                             style={currentTab === "Review Problems" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-briefcase"> Review Problems</i>
-                        </button>
+                        </button> */}
                     </div>
                 </div>
             )}

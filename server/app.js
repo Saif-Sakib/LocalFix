@@ -38,6 +38,9 @@ app.get('/', (req, res) => {
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/issues', require('./routes/issueRoutes'));
+
+
 
 // Test route
 app.get('/api/test', (req, res) => {
