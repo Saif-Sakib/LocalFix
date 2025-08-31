@@ -55,13 +55,20 @@
     animation: right-to-left 0.25s ease-in-out forwards;
 }
 
+.left-button {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
 .left-button button {
     display: flex;
     width: 100%;
-    height: 40%;
+    height: 10%;
+    margin: 8px 5px 8px 3px;
     justify-content: left;
     align-items: center;
-    margin: 8px 5px 8px 3px;
     padding-left: 10px;
     background-color: white;
     color: black;
