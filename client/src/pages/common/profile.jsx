@@ -111,8 +111,7 @@ function Profile() {
                                     id="userType"
                                     name="userType"
                                     value={profileData.userType}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
+                                    disabled={true}
                                     className="form-input"
                                 >
                                     <option value="Admin">Admin</option>
@@ -146,8 +145,7 @@ function Profile() {
                                     id="email"
                                     name="email"
                                     value={profileData.email}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
+                                    disabled={true}
                                     className="form-input"
                                     placeholder="Enter your email"
                                 />
