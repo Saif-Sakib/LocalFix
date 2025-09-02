@@ -104,7 +104,7 @@ function CitizenIssue() {
         <div className="hero-content">
           <h1>Report Community Issues</h1>
           <p>Help make your community better by reporting issues that need attention</p>
-          <div className="stats">
+          {/* <div className="stats">
             <div className="stat">
               <span className="stat-number">2,847</span>
               <span className="stat-label">Issues Resolved</span>
@@ -117,7 +117,7 @@ function CitizenIssue() {
               <span className="stat-number">3.2</span>
               <span className="stat-label">Avg Days to Resolve</span>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -306,32 +306,7 @@ function CitizenIssue() {
           </button>
         </form>
 
-        <div className="info-section">
-          <h3>What Happens Next?</h3>
-          <div className="process-steps">
-            <div className="step">
-              <div className="step-icon">📝</div>
-              <div className="step-content">
-                <h4>Review</h4>
-                <p>Your issue will be reviewed by our team within 24 hours</p>
-              </div>
-            </div>
-            <div className="step">
-              <div className="step-icon">🔍</div>
-              <div className="step-content">
-                <h4>Investigation</h4>
-                <p>We'll investigate and determine the appropriate department to handle your issue</p>
-              </div>
-            </div>
-            <div className="step">
-              <div className="step-icon">🛠️</div>
-              <div className="step-content">
-                <h4>Resolution</h4>
-                <p>The relevant department will work to resolve your issue and update you on progress</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
 
         <div className="contact-info">
           <h3>Need Immediate Assistance?</h3>

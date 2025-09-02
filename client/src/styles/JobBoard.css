@@ -1,0 +1,60 @@
+.job-board {
+  padding: 2rem;
+  background: #f9f9f9;
+}
+
+.job-board h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.filter-bar {
+  margin: 1rem 0;
+}
+
+.job-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.job-card {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.job-meta {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.job-card img {
+  max-width: 100%;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+}
+
+.priority.low { color: #28a745; }
+.priority.medium { color: #ffc107; }
+.priority.high { color: #fd7e14; }
+.priority.urgent { color: #dc3545; }
+
+.job-actions button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.job-actions button:first-child {
+  background: #007bff;
+  color: white;
+}
+
+.job-actions button:last-child {
+  background: #28a745;
+  color: white;
+}

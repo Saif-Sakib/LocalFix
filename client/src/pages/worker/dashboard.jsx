@@ -1,7 +1,9 @@
 import React,{useState} from "react";
 import { useAuth } from "../../context/AuthContext";
-import Profile from "../common/profile/profile"
 import "../../styles/dashboard.css";
+
+import IssueList from "./IssueList"
+
 
 function WorkerDashboard() {
 
@@ -12,12 +14,12 @@ function WorkerDashboard() {
 
     const RenderContent = () => {
         switch (currentTab) {
-            // case "Home":
-            //     return <Home />;
+            case "Home":
+                return <IssueList />;
             case "Profile":
-                return <Profile />;
+                return <IssueList />;
             // case "Issues":
-            //     return <Issues />;
+            //     return <WorkerIssue/>;
             // case "Applications":
             //     return <Applications />;
             // case "Review Problems":
