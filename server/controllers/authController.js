@@ -231,9 +231,98 @@ const getProfile = async (req, res) => {
     }
 };
 
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const { name, phone, address, password } = req.body;
+        
+        // Validate input
+        if (!name && !phone && !address && !password) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one field is required for update'
+            });
+        }
+        
+        // Prepare update data (only include fields that are provided)
+        const updateData = {};
+        
+        if (name && name.trim()) {
+            if (name.trim().length < 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Name must be at least 2 characters long'
+                });
+            }
+            updateData.name = name.trim();
+        }
+        
+        if (phone && phone.trim()) {
+            // Basic phone validation (adjust regex as needed for your format)
+            const phoneRegex = /^[\d\s\-\+\(\)]{10,15}$/;
+            if (!phoneRegex.test(phone.trim())) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Please enter a valid phone number'
+                });
+            }
+            updateData.phone = phone.trim();
+        }
+        
+        if (address && address.trim()) {
+            updateData.address = address.trim();
+        }
+        
+        if (password && password.trim()) {
+            if (password.length < 8) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Password must be at least 8 characters long'
+                });
+            }
+            updateData.password = password;
+        }
+        
+        // Update user in database
+        const updated = await User.update(userId, updateData);
+        
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found or no changes made'
+            });
+        }
+        
+        // Fetch updated user data to return
+        const updatedUser = await User.findById(userId);
+        
+        res.json({
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                user_id: updatedUser.user_id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phone: updatedUser.phone,
+                address: updatedUser.address,
+                user_type: updatedUser.user_type,
+                status: updatedUser.status,
+                created_at: updatedUser.created_at
+            }
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update profile'
+        });
+    }
+};
+
 module.exports = {
     register,
     login,
     logout,
-    getProfile
+    getProfile,
+    updateProfile
 };

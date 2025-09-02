@@ -1,126 +1,359 @@
-const oracledb = require("oracledb");
+const { executeQuery, executeTransaction } = require('../config/database');
 
-// ✅ Auto-convert CLOBs to string, BLOBs to Buffer
-oracledb.fetchAsString = [oracledb.CLOB];
-oracledb.fetchAsBuffer = [oracledb.BLOB];
+// Helper to create a serializable error message
+const getErrorMessage = (error) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
 
 async function createIssue(req, res) {
   const {
-    citizenName,
-    citizenEmail,
-    citizenPhone,
-    citizenAddress,
+    citizen_id,
     title,
     description,
     category,
-    priority,
-    location,
-    imageUrl,
+    priority = 'medium',
+    location_id,
+    image_url,
   } = req.body;
 
-  let connection;
-
   try {
-    // Open a connection to the Oracle DB
-    connection = await oracledb.getConnection({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      connectString: process.env.DB_CONNECT_STRING,
-    });
+    if (!citizen_id || !title || !description || !category || !location_id) {
+      return res.status(400).json({ 
+        message: "Missing required fields: citizen_id, title, description, category, location_id" 
+      });
+    }
 
-    // Insert new issue into the DB
-    await connection.execute(
-      `INSERT INTO ISSUE 
-      (CITIZEN_NAME, CITIZEN_EMAIL, CITIZEN_PHONE, CITIZEN_ADDRESS, TITLE, DESCRIPTION, CATEGORY, PRIORITY, LOCATION, IMAGE_URL, CREATED_AT) 
-      VALUES 
-      (:citizenName, :citizenEmail, :citizenPhone, :citizenAddress, :title, :description, :category, :priority, :location, :imageUrl, CURRENT_TIMESTAMP)`,
-      {
-        citizenName,
-        citizenEmail,
-        citizenPhone,
-        citizenAddress,
-        title,
-        description,
-        category,
-        priority,
-        location,
-        imageUrl,
-      },
-      { autoCommit: true }
+    const result = await executeTransaction(
+      `INSERT INTO issues (citizen_id, title, description, category, priority, location_id, image_url) 
+       VALUES (:citizen_id, :title, :description, :category, :priority, :location_id, :image_url)`,
+      { citizen_id, title, description, category, priority, location_id, image_url: image_url || null }
     );
 
-    res.json({ message: "Issue submitted successfully!" });
+    if (result.success) {
+      res.status(201).json({ 
+        message: "Issue submitted successfully!",
+        rowsAffected: result.rowsAffected
+      });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Failed to create issue",
+        error: errorMessage 
+      });
+    }
   } catch (err) {
-    console.error("Error in creating issue:", err);
-    res.status(500).json({ message: "Database error occurred" });
-  } finally {
-    if (connection) await connection.close();
+    console.error("Error in createIssue:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
   }
 }
 
 async function getAllIssues(req, res) {
-  let connection;
   try {
-    connection = await oracledb.getConnection({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      connectString: process.env.DB_CONNECT_STRING,
-    });
-
-    const result = await connection.execute(
-      `SELECT * FROM ISSUE ORDER BY CREATED_AT DESC`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
+    const result = await executeQuery(
+      `SELECT 
+        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
+        i.created_at, i.updated_at, u.name as citizen_name, u.email as citizen_email,
+        u.phone as citizen_phone, l.full_address as location_address, l.upazila,
+        l.district, l.latitude, l.longitude
+      FROM issues i
+      LEFT JOIN users u ON i.citizen_id = u.user_id
+      LEFT JOIN locations l ON i.location_id = l.location_id
+      ORDER BY i.created_at DESC`
     );
 
-    // ✅ Sanitize Oracle DATE → ISO string
-    const issues = result.rows.map((issue) => ({
-      ...issue,
-      CREATED_AT: issue.CREATED_AT
-        ? new Date(issue.CREATED_AT).toISOString()
-        : null,
-      UPDATED_AT: issue.UPDATED_AT
-        ? new Date(issue.UPDATED_AT).toISOString()
-        : null,
-    }));
-
-    res.json({ issues });
+    if (result.success) {
+      const issues = result.rows.map((issue) => ({
+        ID: issue.ISSUE_ID,
+        TITLE: issue.TITLE,
+        DESCRIPTION: issue.DESCRIPTION,
+        CATEGORY: issue.CATEGORY,
+        PRIORITY: issue.PRIORITY,
+        IMAGE_URL: issue.IMAGE_URL,
+        STATUS: issue.STATUS,
+        CREATED_AT: issue.CREATED_AT ? new Date(issue.CREATED_AT).toISOString() : null,
+        UPDATED_AT: issue.UPDATED_AT ? new Date(issue.UPDATED_AT).toISOString() : null,
+        CITIZEN_NAME: issue.CITIZEN_NAME,
+        CITIZEN_EMAIL: issue.CITIZEN_EMAIL,
+        CITIZEN_PHONE: issue.CITIZEN_PHONE,
+        LOCATION: issue.LOCATION_ADDRESS,
+        UPAZILA: issue.UPAZILA,
+        DISTRICT: issue.DISTRICT,
+        LATITUDE: issue.LATITUDE,
+        LONGITUDE: issue.LONGITUDE
+      }));
+      res.json({ issues });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error fetching issues",
+        error: errorMessage 
+      });
+    }
   } catch (err) {
-    console.error("Error fetching issues arafat:", err);
-    res.status(500).json({ message: "Error fetching issues arafat." });
-  } finally {
-    if (connection) await connection.close();
+    console.error("Error in getAllIssues:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
+
+async function getIssueById(req, res) {
+  const { id } = req.params;
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
+        i.created_at, i.updated_at, u.name as citizen_name, u.email as citizen_email,
+        u.phone as citizen_phone, l.full_address as location_address, l.upazila,
+        l.district, l.latitude, l.longitude
+      FROM issues i
+      LEFT JOIN users u ON i.citizen_id = u.user_id
+      LEFT JOIN locations l ON i.location_id = l.location_id
+      WHERE i.issue_id = :id`, { id }
+    );
+
+    if (result.success) {
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+      const issue = result.rows[0];
+      const formattedIssue = {
+        ID: issue.ISSUE_ID,
+        TITLE: issue.TITLE,
+        DESCRIPTION: issue.DESCRIPTION,
+        CATEGORY: issue.CATEGORY,
+        PRIORITY: issue.PRIORITY,
+        IMAGE_URL: issue.IMAGE_URL,
+        STATUS: issue.STATUS,
+        CREATED_AT: issue.CREATED_AT ? new Date(issue.CREATED_AT).toISOString() : null,
+        UPDATED_AT: issue.UPDATED_AT ? new Date(issue.UPDATED_AT).toISOString() : null,
+        CITIZEN_NAME: issue.CITIZEN_NAME,
+        CITIZEN_EMAIL: issue.CITIZEN_EMAIL,
+        CITIZEN_PHONE: issue.CITIZEN_PHONE,
+        LOCATION: issue.LOCATION_ADDRESS,
+        UPAZILA: issue.UPAZILA,
+        DISTRICT: issue.DISTRICT,
+        LATITUDE: issue.LATITUDE,
+        LONGITUDE: issue.LONGITUDE
+      };
+      res.json({ issue: formattedIssue });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error fetching issue",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in getIssueById:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
   }
 }
 
 async function updateIssueStatus(req, res) {
   const { id } = req.params;
   const { status } = req.body;
-
-  let connection;
-
   try {
-    connection = await oracledb.getConnection({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      connectString: process.env.DB_CONNECT_STRING,
-    });
+    const validStatuses = ['submitted', 'assigned', 'in_progress', 'resolved', 'closed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        message: "Invalid status. Must be one of: " + validStatuses.join(', ')
+      });
+    }
 
-    await connection.execute(
-      `UPDATE ISSUE 
-       SET STATUS = :status, UPDATED_AT = CURRENT_TIMESTAMP 
-       WHERE ID = :id`,
-      { status, id },
-      { autoCommit: true }
+    const result = await executeTransaction(
+      `UPDATE issues SET status = :status WHERE issue_id = :id`, { status, id }
     );
 
-    res.json({ message: "Issue status updated!" });
+    if (result.success) {
+      if (result.rowsAffected === 0) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+      res.json({ 
+        message: "Issue status updated successfully!",
+        rowsAffected: result.rowsAffected
+      });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error updating issue status",
+        error: errorMessage
+      });
+    }
   } catch (err) {
-    console.error("Error updating issue:", err);
-    res.status(500).json({ message: "Error updating issue." });
-  } finally {
-    if (connection) await connection.close();
+    console.error("Error in updateIssueStatus:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
   }
 }
 
-module.exports = { createIssue, getAllIssues, updateIssueStatus };
+async function updateIssue(req, res) {
+  const { id } = req.params;
+  const { title, description, category, priority, location_id, image_url, status } = req.body;
+  try {
+    const updateFields = [];
+    const binds = { id };
+    if (title !== undefined) { updateFields.push('title = :title'); binds.title = title; }
+    if (description !== undefined) { updateFields.push('description = :description'); binds.description = description; }
+    if (category !== undefined) { updateFields.push('category = :category'); binds.category = category; }
+    if (priority !== undefined) { updateFields.push('priority = :priority'); binds.priority = priority; }
+    if (location_id !== undefined) { updateFields.push('location_id = :location_id'); binds.location_id = location_id; }
+    if (image_url !== undefined) { updateFields.push('image_url = :image_url'); binds.image_url = image_url; }
+    if (status !== undefined) { updateFields.push('status = :status'); binds.status = status; }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "No fields provided to update" });
+    }
+
+    const sql = `UPDATE issues SET ${updateFields.join(', ')} WHERE issue_id = :id`;
+    const result = await executeTransaction(sql, binds);
+
+    if (result.success) {
+      if (result.rowsAffected === 0) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+      res.json({ message: "Issue updated successfully!", rowsAffected: result.rowsAffected });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error updating issue",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in updateIssue:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
+
+async function deleteIssue(req, res) {
+  const { id } = req.params;
+  try {
+    const result = await executeTransaction(`DELETE FROM issues WHERE issue_id = :id`, { id });
+
+    if (result.success) {
+      if (result.rowsAffected === 0) {
+        return res.status(404).json({ message: "Issue not found" });
+      }
+      res.json({ message: "Issue deleted successfully!", rowsAffected: result.rowsAffected });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error deleting issue",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in deleteIssue:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
+
+async function getIssuesByCategory(req, res) {
+  const { category } = req.params;
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
+        i.created_at, i.updated_at, u.name as citizen_name, l.full_address as location_address,
+        l.upazila, l.district
+      FROM issues i
+      LEFT JOIN users u ON i.citizen_id = u.user_id
+      LEFT JOIN locations l ON i.location_id = l.location_id
+      WHERE LOWER(i.category) = LOWER(:category)
+      ORDER BY i.created_at DESC`, { category }
+    );
+
+    if (result.success) {
+      const issues = result.rows.map((issue) => ({
+        ID: issue.ISSUE_ID,
+        TITLE: issue.TITLE,
+        DESCRIPTION: issue.DESCRIPTION,
+        CATEGORY: issue.CATEGORY,
+        PRIORITY: issue.PRIORITY,
+        IMAGE_URL: issue.IMAGE_URL,
+        STATUS: issue.STATUS,
+        CREATED_AT: issue.CREATED_AT ? new Date(issue.CREATED_AT).toISOString() : null,
+        UPDATED_AT: issue.UPDATED_AT ? new Date(issue.UPDATED_AT).toISOString() : null,
+        CITIZEN_NAME: issue.CITIZEN_NAME,
+        LOCATION: issue.LOCATION_ADDRESS,
+        UPAZILA: issue.UPAZILA,
+        DISTRICT: issue.DISTRICT
+      }));
+      res.json({ issues });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error fetching issues by category",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in getIssuesByCategory:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
+
+async function getIssuesByStatus(req, res) {
+  const { status } = req.params;
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
+        i.created_at, i.updated_at, u.name as citizen_name, l.full_address as location_address,
+        l.upazila, l.district
+      FROM issues i
+      LEFT JOIN users u ON i.citizen_id = u.user_id
+      LEFT JOIN locations l ON i.location_id = l.location_id
+      WHERE LOWER(i.status) = LOWER(:status)
+      ORDER BY i.created_at DESC`, { status }
+    );
+
+    if (result.success) {
+      const issues = result.rows.map((issue) => ({
+        ID: issue.ISSUE_ID,
+        TITLE: issue.TITLE,
+        DESCRIPTION: issue.DESCRIPTION,
+        CATEGORY: issue.CATEGORY,
+        PRIORITY: issue.PRIORITY,
+        IMAGE_URL: issue.IMAGE_URL,
+        STATUS: issue.STATUS,
+        CREATED_AT: issue.CREATED_AT ? new Date(issue.CREATED_AT).toISOString() : null,
+        UPDATED_AT: issue.UPDATED_AT ? new Date(issue.UPDATED_AT).toISOString() : null,
+        CITIZEN_NAME: issue.CITIZEN_NAME,
+        LOCATION: issue.LOCATION_ADDRESS,
+        UPAZILA: issue.UPAZILA, // Corrected from CITY to UPAZILA
+        DISTRICT: issue.DISTRICT
+      }));
+      res.json({ issues });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error fetching issues by status",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in getIssuesByStatus:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
+
+module.exports = { 
+  createIssue, 
+  getAllIssues, 
+  getIssueById,
+  updateIssueStatus,
+  updateIssue,
+  deleteIssue,
+  getIssuesByCategory,
+  getIssuesByStatus
+};

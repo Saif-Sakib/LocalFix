@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import "./IssueList.css"; // Make sure this path matches your CSS file
 import axios from "axios";
+import '../../styles/worker/IssueList.css'; // Make sure this path matches your CSS file
 
 function IssueList() {
   const [issues, setIssues] = useState([]);

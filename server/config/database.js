@@ -1,6 +1,9 @@
 const oracledb = require('oracledb');
 require('dotenv').config();
 
+// FIX: Automatically convert CLOBs to strings on fetch
+oracledb.fetchAsString = [oracledb.CLOB];
+
 // Database configuration using your settings
 const dbConfig = {
     user: process.env.DB_USER || 'local',
