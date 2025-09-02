@@ -1,7 +1,7 @@
 import React,{ useState} from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { PieChart, Pie , Cell } from "recharts";
-import "./home.css"
+import "../../styles/admin/home.css"
 
 function Home() {
   

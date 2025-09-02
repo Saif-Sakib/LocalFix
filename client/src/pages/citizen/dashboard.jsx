@@ -1,8 +1,8 @@
 import React,{useState} from "react";
 import { useAuth } from "../../context/AuthContext";
-import Profile from "../common/profile/profile"
-import "../../styles/dashboard.css";
+import Profile from "../common/profile"
 import CitizenIssue from "./CitizenIssue"
+import "../../styles/common/dashboard.css";
 
 function CitizenDashboard() {
 
