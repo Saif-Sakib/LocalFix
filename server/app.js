@@ -2,15 +2,21 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser'); // Essential for cookie-based auth
 require('dotenv').config();
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
+
+// CRITICAL: Cookie parser must come before routes that use cookies
+app.use(cookieParser());
+
+// CORS configuration - credentials: true is ESSENTIAL for cookies to work
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    credentials: true
+    credentials: true // This allows cookies to be sent cross-origin
 }));
 
 // Rate limiting
@@ -39,8 +45,6 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issueRoutes'));
-
-
 
 // Test route
 app.get('/api/test', (req, res) => {

@@ -5,13 +5,13 @@ INSERT INTO locations (location_id, upazila, district, full_address, latitude, l
 
 -- 2. Inserting into users table (citizens, workers, admin)
 -- Citizens
-INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (1, 'Karim Ahmed', 'karim.a@example.com', '01711111111', 'House 1, Mirpur, Dhaka', 'pass123', 'citizen');
-INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (2, 'Fatima Begum', 'fatima.b@example.com', '01822222222', 'House 2, Gulshan, Dhaka', 'pass123', 'citizen');
+INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (1, 'Karim Ahmed', 'karim.a@example.com', '01711111111', 'House 1, Mirpur, Dhaka', '$2a$10$XXlVfJC51nvcL10nWBhdz.wzzYOdUAx0t6CvJS87ILSuJ/o1y9gdi', 'citizen');
+INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (2, 'Fatima Begum', 'fatima.b@example.com', '01822222222', 'House 2, Gulshan, Dhaka', '$2a$10$XXlVfJC51nvcL10nWBhdz.wzzYOdUAx0t6CvJS87ILSuJ/o1y9gdi', 'citizen');
 -- Workers
-INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (3, 'Rahim Sheikh', 'rahim.s@example.com', '01933333333', 'Worker Area 1, Dhaka', 'pass123', 'worker');
-INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (4, 'Sultana Khatun', 'sultana.k@example.com', '01544444444', 'Worker Area 2, Dhaka', 'pass123', 'worker');
+INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (3, 'Rahim Sheikh', 'rahim.s@example.com', '01933333333', 'Worker Area 1, Dhaka', '$2a$10$XXlVfJC51nvcL10nWBhdz.wzzYOdUAx0t6CvJS87ILSuJ/o1y9gdi', 'worker');
+INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (4, 'Sultana Khatun', 'sultana.k@example.com', '01544444444', 'Worker Area 2, Dhaka', '$2a$10$XXlVfJC51nvcL10nWBhdz.wzzYOdUAx0t6CvJS87ILSuJ/o1y9gdi', 'worker');
 -- Admin
-INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (5, 'Admin User', 'admin@example.com', '01655555555', 'Admin Office, Dhaka', 'adminpass', 'admin');
+INSERT INTO users (user_id, name, email, phone, address, password, user_type) VALUES (5, 'Admin User', 'admin@example.com', '01655555555', 'Admin Office, Dhaka', '$2a$10$XXlVfJC51nvcL10nWBhdz.wzzYOdUAx0t6CvJS87ILSuJ/o1y9gdi', 'admin');
 
 -- 3. Inserting into application_status lookup table
 INSERT INTO application_status (status_id, status_name, description) VALUES (1, 'Submitted', 'The worker has submitted their application.');

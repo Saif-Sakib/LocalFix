@@ -81,7 +81,7 @@ const AuthPage = () => {
             return toast.error('Please fill in all fields');
         }
         const loadingToast = toast.loading('Logging in...');
-        const result = await login({ email, password, user_type }, rememberMe);
+        const result = await login({ email, password, user_type, rememberMe});
         toast.dismiss(loadingToast);
         if (result.success) {
             toast.success('Login successful!');

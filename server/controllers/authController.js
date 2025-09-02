@@ -11,8 +11,37 @@ const generateToken = (user) => {
             user_type: user.user_type 
         },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '24h' } // Keep token expiration shorter for security
     );
+};
+
+// Helper function to set secure authentication cookies
+const setAuthCookie = (res, token, rememberMe = false) => {
+    const cookieOptions = {
+        httpOnly: true,  // Prevents XSS attacks - JavaScript cannot access this cookie
+        secure: process.env.NODE_ENV === 'production', // Only HTTPS in production, HTTP OK for localhost
+        sameSite: 'lax', // Changed from 'strict' to 'lax' for better localhost compatibility
+        path: '/', // Cookie available for entire site
+    };
+    
+    // If rememberMe is true, set cookie to expire in 30 days
+    // If rememberMe is false, this becomes a session cookie (expires when browser closes)
+    if (rememberMe) {
+        cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+    }
+    // Note: When maxAge is not set, the cookie becomes a session cookie
+    
+    res.cookie('authToken', token, cookieOptions);
+};
+
+// Helper function to clear authentication cookie
+const clearAuthCookie = (res) => {
+    res.clearCookie('authToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
+    });
 };
 
 const register = async (req, res) => {
@@ -27,7 +56,7 @@ const register = async (req, res) => {
             });
         }
 
-        const { name, email, phone, address, password, user_type } = req.body;
+        const { name, email, phone, address, password, user_type, rememberMe = false } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findByEmail(email);
@@ -48,8 +77,9 @@ const register = async (req, res) => {
             user_type
         });
 
-        // Generate token
+        // Generate token and set secure cookie
         const token = generateToken(newUser);
+        setAuthCookie(res, token, rememberMe);
 
         res.status(201).json({
             success: true,
@@ -61,8 +91,8 @@ const register = async (req, res) => {
                 phone: newUser.phone,
                 address: newUser.address,
                 user_type: newUser.user_type
-            },
-            token
+            }
+            // Note: No token in response body - it's now in secure cookie
         });
 
     } catch (error) {
@@ -86,14 +116,14 @@ const login = async (req, res) => {
             });
         }
 
-        const { email, password, user_type } = req.body;
+        const { email, password, user_type, rememberMe = false } = req.body;
 
         // Find user by email
         const user = await User.findByEmail(email);
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: 'Invalid credential'
             });
         }
 
@@ -101,7 +131,7 @@ const login = async (req, res) => {
         if (user.user_type !== user_type) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid user type selected'
+                message: 'Invalid credential'
             });
         }
 
@@ -118,12 +148,13 @@ const login = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: 'Invalid credential'
             });
         }
 
-        // Generate token
+        // Generate token and set secure cookie
         const token = generateToken(user);
+        setAuthCookie(res, token, rememberMe);
 
         res.json({
             success: true,
@@ -135,8 +166,8 @@ const login = async (req, res) => {
                 phone: user.phone,
                 address: user.address,
                 user_type: user.user_type
-            },
-            token
+            }
+            // Note: No token in response body - it's now in secure cookie
         });
 
     } catch (error) {
@@ -144,6 +175,25 @@ const login = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Internal server error during login'
+        });
+    }
+};
+
+// New logout endpoint to clear cookies
+const logout = async (req, res) => {
+    try {
+        // Clear the authentication cookie
+        clearAuthCookie(res);
+        
+        res.json({
+            success: true,
+            message: 'Logged out successfully'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error during logout'
         });
     }
 };
@@ -184,5 +234,6 @@ const getProfile = async (req, res) => {
 module.exports = {
     register,
     login,
+    logout,
     getProfile
 };

@@ -14,49 +14,51 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token'));
     const [loading, setLoading] = useState(true);
 
-    // Set up axios interceptor to include token in requests
+    // Configure axios to work with cookies
     useEffect(() => {
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            // Verify token and get user info
-            fetchUserProfile();
-        } else {
-            delete axios.defaults.headers.common['Authorization'];
-            setLoading(false);
-        }
-    }, [token]);
+        // CRITICAL: This tells axios to include cookies in all requests
+        axios.defaults.withCredentials = true;
+        
+        // Set base URL for your API (adjust if needed)
+        axios.defaults.baseURL = 'http://localhost:5000';
+        
+        // Clean up any existing localStorage tokens from old implementation
+        localStorage.removeItem('token');
+        
+        // Check if user is already authenticated via cookie
+        checkAuthStatus();
+    }, []);
 
-    const fetchUserProfile = async () => {
+    const checkAuthStatus = async () => {
         try {
+            // The browser will automatically include the authToken cookie with this request
             const response = await axios.get('/api/auth/profile');
+            
             if (response.data.success) {
                 setUser(response.data.user);
             }
         } catch (error) {
-            console.error('Error fetching profile:', error);
-            logout(); // Invalid token, logout user
+            // If profile fetch fails, user is not authenticated
+            // This is normal on first visit or after token expiry
+            console.log('No valid authentication found');
+            setUser(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const login = async (credentials, rememberMe) => {
+    const login = async (credentials) => {
         try {
+            // Send login credentials including rememberMe flag
             const response = await axios.post('/api/auth/login', credentials);
             
             if (response.data.success) {
-                const { token, user } = response.data;
+                const { user } = response.data;
                 
-                // Store token in localStorage
-                localStorage.setItem('token', token);
-                setToken(token);
+                // Update user state - the token is now safely stored in HTTP-only cookie
                 setUser(user);
-                
-                // Set default axios header
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 
                 return { success: true, user };
             }
@@ -68,18 +70,14 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (userData) => {
         try {
+            // Send registration data including rememberMe flag if provided
             const response = await axios.post('/api/auth/register', userData);
             
             if (response.data.success) {
-                const { token, user } = response.data;
+                const { user } = response.data;
                 
-                // Store token in localStorage
-                localStorage.setItem('token', token);
-                setToken(token);
+                // Update user state - the token is now safely stored in HTTP-only cookie
                 setUser(user);
-                
-                // Set default axios header
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 
                 return { success: true, user };
             }
@@ -90,30 +88,55 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
-        delete axios.defaults.headers.common['Authorization'];
+    const logout = async () => {
+        try {
+            // Call the logout endpoint to clear the HTTP-only cookie on server side
+            await axios.post('/api/auth/logout');
+            
+            // Clear user state
+            setUser(null);
+            
+            return { success: true };
+        } catch (error) {
+            // Even if the server request fails, we should clear local state
+            setUser(null);
+            console.error('Logout error:', error);
+            return { success: false, message: 'Logout failed' };
+        }
     };
 
     const isAuthenticated = () => {
-        return !!token && !!user;
+        return !!user;
     };
 
     const hasRole = (role) => {
         return user && user.user_type === role;
     };
 
+    // Function to refresh user data (useful after profile updates)
+    const refreshUser = async () => {
+        try {
+            const response = await axios.get('/api/auth/profile');
+            if (response.data.success) {
+                setUser(response.data.user);
+                return { success: true };
+            }
+        } catch (error) {
+            // If refresh fails, user might not be authenticated anymore
+            setUser(null);
+            return { success: false };
+        }
+    };
+
     const value = {
         user,
-        token,
         loading,
         login,
         register,
         logout,
         isAuthenticated,
-        hasRole
+        hasRole,
+        refreshUser
     };
 
     return (
