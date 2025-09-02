@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
-import '../../styles/auth.css'; // Make sure this path is correct
+import '../../styles/common/auth.css'; // Make sure this path is correct
 
 const AuthPage = () => {
     const [isLoginView, setIsLoginView] = useState(true);
