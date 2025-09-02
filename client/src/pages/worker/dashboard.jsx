@@ -1,6 +1,7 @@
 import React,{useState} from "react";
 import { useAuth } from "../../context/AuthContext";
 import Profile from "../common/profile"
+import IssueList from "./IssueList"
 import "../../styles/common/dashboard.css";
 
 function WorkerDashboard() {
@@ -16,8 +17,8 @@ function WorkerDashboard() {
             //     return <Home />;
             case "Profile":
                 return <Profile />;
-            // case "Issues":
-            //     return <Issues />;
+            case "Issues":
+                return <IssueList />;
             // case "Applications":
             //     return <Applications />;
             // case "Review Problems":

@@ -1,5 +1,9 @@
 const oracledb = require("oracledb");
 
+// ✅ Auto-convert CLOBs to string, BLOBs to Buffer
+oracledb.fetchAsString = [oracledb.CLOB];
+oracledb.fetchAsBuffer = [oracledb.BLOB];
+
 async function createIssue(req, res) {
   const {
     citizenName,
@@ -11,7 +15,7 @@ async function createIssue(req, res) {
     category,
     priority,
     location,
-    imageUrl
+    imageUrl,
   } = req.body;
 
   let connection;
@@ -27,10 +31,21 @@ async function createIssue(req, res) {
     // Insert new issue into the DB
     await connection.execute(
       `INSERT INTO ISSUE 
-      (CITIZEN_NAME, CITIZEN_EMAIL, CITIZEN_PHONE, CITIZEN_ADDRESS, TITLE, DESCRIPTION, CATEGORY, PRIORITY, LOCATION, IMAGE_URL) 
+      (CITIZEN_NAME, CITIZEN_EMAIL, CITIZEN_PHONE, CITIZEN_ADDRESS, TITLE, DESCRIPTION, CATEGORY, PRIORITY, LOCATION, IMAGE_URL, CREATED_AT) 
       VALUES 
-      (:citizenName, :citizenEmail, :citizenPhone, :citizenAddress, :title, :description, :category, :priority, :location, :imageUrl)`,
-      { citizenName, citizenEmail, citizenPhone, citizenAddress, title, description, category, priority, location, imageUrl },
+      (:citizenName, :citizenEmail, :citizenPhone, :citizenAddress, :title, :description, :category, :priority, :location, :imageUrl, CURRENT_TIMESTAMP)`,
+      {
+        citizenName,
+        citizenEmail,
+        citizenPhone,
+        citizenAddress,
+        title,
+        description,
+        category,
+        priority,
+        location,
+        imageUrl,
+      },
       { autoCommit: true }
     );
 
@@ -58,10 +73,21 @@ async function getAllIssues(req, res) {
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
-    res.json(result.rows);
+    // ✅ Sanitize Oracle DATE → ISO string
+    const issues = result.rows.map((issue) => ({
+      ...issue,
+      CREATED_AT: issue.CREATED_AT
+        ? new Date(issue.CREATED_AT).toISOString()
+        : null,
+      UPDATED_AT: issue.UPDATED_AT
+        ? new Date(issue.UPDATED_AT).toISOString()
+        : null,
+    }));
+
+    res.json({ issues });
   } catch (err) {
-    console.error("Error fetching issues:", err);
-    res.status(500).json({ message: "Error fetching issues." });
+    console.error("Error fetching issues arafat:", err);
+    res.status(500).json({ message: "Error fetching issues arafat." });
   } finally {
     if (connection) await connection.close();
   }
@@ -81,7 +107,9 @@ async function updateIssueStatus(req, res) {
     });
 
     await connection.execute(
-      `UPDATE ISSUE SET STATUS = :status, UPDATED_AT = CURRENT_TIMESTAMP WHERE ID = :id`,
+      `UPDATE ISSUE 
+       SET STATUS = :status, UPDATED_AT = CURRENT_TIMESTAMP 
+       WHERE ID = :id`,
       { status, id },
       { autoCommit: true }
     );

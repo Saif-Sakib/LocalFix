@@ -9,10 +9,17 @@
     "client": "cd client && npm run dev",
     "install-all": "npm install && cd client && npm install && cd ../server && npm install"
   },
-  "keywords": ["localfix", "issues", "freelance"],
+  "keywords": [
+    "localfix",
+    "issues",
+    "freelance"
+  ],
   "author": "Your Team",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.0"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7"
   }
 }
