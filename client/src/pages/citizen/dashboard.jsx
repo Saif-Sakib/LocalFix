@@ -1,7 +1,8 @@
-import React,{useState} from "react";
+import React,{useState,useEffect} from "react";
 import { useAuth } from "../../context/AuthContext";
 import Profile from "../common/profile"
 import CitizenIssue from "./CitizenIssue"
+import IssueList from "../common/IssueList";
 import "../../styles/common/dashboard.css";
 
 function CitizenDashboard() {
@@ -10,6 +11,39 @@ function CitizenDashboard() {
 
     const [left_hide,set_left_hide] = useState(false);
     const [currentTab, setCurrentTab] = useState("Home");
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Check if device is mobile and set initial state
+    useEffect(() => {
+        const checkMobile = () => {
+            const mobile = window.innerWidth <= 900;
+            setIsMobile(mobile);
+
+            // Hide left panel by default on mobile
+            if (mobile) {
+                set_left_hide(true);
+            }
+        };
+
+        // Check on initial load
+        checkMobile();
+
+        // Add event listener for resize
+        window.addEventListener('resize', checkMobile);
+
+        // Cleanup
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // Handle tab change - hide panel on mobile after selection
+    const handleTabChange = (tab) => {
+        setCurrentTab(tab);
+
+        // Auto-hide panel on mobile after clicking any button
+        if (isMobile) {
+            set_left_hide(true);
+        }
+    };
 
     const RenderContent = () => {
         switch (currentTab) {
@@ -19,8 +53,8 @@ function CitizenDashboard() {
                 return <Profile />;
             case "Issues":
                 return <CitizenIssue />;
-            // case "Applications":
-            //     return <Applications />;
+            case "View Issue":
+                return <IssueList />;
             // case "Review Problems":
             //     return <ReviewProblems />;
             default:
@@ -70,12 +104,12 @@ function CitizenDashboard() {
                             <i className="bx bx-time"> Add Issue</i>
                         </button>
 
-                        {/* <button
-                            onClick={() => setCurrentTab("Review Problems")}
-                            style={currentTab === "Review Problems" ? { backgroundColor: "#bcd6fbff" } : {}}
+                        <button
+                            onClick={() => setCurrentTab("View Issue")}
+                            style={currentTab === "View Issue" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
-                            <i className="bx bx-briefcase"> Review Problems</i>
-                        </button> */}
+                            <i className="bx bx-briefcase"> View Issue</i>
+                        </button>
                     </div>
                 </div>
             )}
@@ -99,7 +133,9 @@ function CitizenDashboard() {
                         <i className="bx bx-log-out"> Logout</i>
                     </button>
                 </header>
-                <div> {RenderContent()} </div>
+                <div className="main-container">
+                    {RenderContent()}
+                </div>
             </div>
         </div>
 	);

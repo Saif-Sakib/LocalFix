@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import Home from "./home";
 import Applications from "./total_applications";
 import ReviewProblems from "./review_problem";
-import Issues from "../common/issue";
+import IssueList from "../common/IssueList";
 import Profile from "../common/profile"
 import "../../styles/common/dashboard.css";
 
@@ -53,7 +53,7 @@ function AdminDashboard() {
             case "Profile":
                 return <Profile />;
             case "Issues":
-                return <Issues />;
+                return <IssueList />;
             case "Applications":
                 return <Applications />;
             case "Review Problems":

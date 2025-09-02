@@ -6,7 +6,6 @@ import '../../styles/common/profile.css';
 function Profile() {
     const { user, refreshUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
@@ -155,6 +154,14 @@ function Profile() {
         fetchProfile();
     };
 
+    const handle_change_password = () => {
+
+    }
+
+    const handle_delete_account = () => {
+        
+    }
+
     // Show loading spinner if initial load or if no user data
     if (loading && !user) {
         return (
@@ -248,18 +255,18 @@ function Profile() {
                             </div>
                             <div className="form-group">
                                 <label htmlFor="userType">User Type</label>
-                                <select
+                                <input
+                                    type="text"
                                     id="userType"
                                     name="userType"
-                                    value={profileData.userType}
-                                    disabled={true} // User type should not be editable by user
+                                    value={
+                                        profileData.userType=="admin" && "Admin" ||
+                                        profileData.userType=="citizen" && "Citizen" || 
+                                        profileData.userType=="worker" && "Worker"
+                                    }
+                                    disabled={true} // User ID should not be editable
                                     className="form-input disabled"
-                                >
-                                    <option value="Admin">Admin</option>
-                                    <option value="Super Admin">Super Admin</option>
-                                    <option value="Moderator">Moderator</option>
-                                    <option value="User">User</option>
-                                </select>
+                                />
                             </div>
                         </div>
 
@@ -324,7 +331,7 @@ function Profile() {
                         </div>
 
                         <div className="form-row">
-                            <div className="form-group">
+                            {/* <div className="form-group">
                                 <label htmlFor="password">New Password</label>
                                 <div className="password-field">
                                     <input
@@ -366,7 +373,21 @@ function Profile() {
                                     <option value="Active">Active</option>
                                     <option value="Inactive">Inactive</option>
                                 </select>
-                            </div>
+                            </div> */}
+                            <button
+                                className='final-button'
+                                style={{backgroundColor:'green'}}
+                            >
+                                Change Password
+                            </button>
+
+                            <button
+                                className='final-button'
+                                
+                                style={{backgroundColor:'red'}}
+                            >
+                                Delete Account
+                            </button>
                         </div>
                     </div>
                 </div>
