@@ -1,4 +1,5 @@
-const { executeQuery, executeTransaction } = require('../config/database');
+const oracledb = require('oracledb');
+const { executeQuery, getConnection } = require('../config/database'); // Updated imports
 
 // Helper to create a serializable error message
 const getErrorMessage = (error) => {
@@ -9,48 +10,82 @@ const getErrorMessage = (error) => {
 };
 
 async function createIssue(req, res) {
+  // Assumes an authentication middleware has added the user to the request object.
+  // This is more secure than accepting citizen_id from the request body.
+  const citizen_id = req.user.user_id; 
+
   const {
-    citizen_id,
     title,
     description,
     category,
     priority = 'medium',
-    location_id,
+    full_address,
+    upazila,
+    district,
     image_url,
   } = req.body;
 
-  try {
-    if (!citizen_id || !title || !description || !category || !location_id) {
-      return res.status(400).json({ 
-        message: "Missing required fields: citizen_id, title, description, category, location_id" 
-      });
-    }
+  if (!citizen_id || !title || !description || !category || !full_address || !upazila || !district) {
+    return res.status(400).json({ 
+      message: "Missing required fields: title, description, category, full_address, upazila, district" 
+    });
+  }
 
-    const result = await executeTransaction(
-      `INSERT INTO issues (citizen_id, title, description, category, priority, location_id, image_url) 
-       VALUES (:citizen_id, :title, :description, :category, :priority, :location_id, :image_url)`,
-      { citizen_id, title, description, category, priority, location_id, image_url: image_url || null }
+  let connection;
+  try {
+    connection = await getConnection();
+
+    // 1. Create the location and get its new ID
+    const locationResult = await connection.execute(
+      `INSERT INTO locations (upazila, district, full_address)
+       VALUES (:upazila, :district, :full_address)
+       RETURNING location_id INTO :new_location_id`,
+      { 
+        upazila, 
+        district, 
+        full_address,
+        new_location_id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
+      },
+      { autoCommit: false } // Do not auto-commit, part of a transaction
     );
 
-    if (result.success) {
-      res.status(201).json({ 
-        message: "Issue submitted successfully!",
-        rowsAffected: result.rowsAffected
-      });
-    } else {
-      const errorMessage = getErrorMessage(result.error);
-      console.error("Database error:", errorMessage);
-      res.status(500).json({ 
-        message: "Failed to create issue",
-        error: errorMessage 
-      });
+    const location_id = locationResult.outBinds.new_location_id[0];
+    if (!location_id) {
+        throw new Error('Failed to create location entry.');
     }
+
+    // 2. Create the issue using the new location_id
+    const issueResult = await connection.execute(
+      `INSERT INTO issues (citizen_id, title, description, category, priority, location_id, image_url) 
+       VALUES (:citizen_id, :title, :description, :category, :priority, :location_id, :image_url)`,
+      { citizen_id, title, description, category, priority, location_id, image_url: image_url || null },
+      { autoCommit: false } // Also part of the same transaction
+    );
+
+    // If both inserts are successful, commit the transaction
+    await connection.commit();
+
+    res.status(201).json({ 
+      message: "Issue submitted successfully!",
+      rowsAffected: issueResult.rowsAffected
+    });
+
   } catch (err) {
+    // If any error occurs, rollback the entire transaction
+    if (connection) {
+      await connection.rollback();
+    }
     console.error("Error in createIssue:", err);
-    res.status(500).json({ message: "Internal server error occurred" });
+    res.status(500).json({ message: "Internal server error occurred", error: getErrorMessage(err) });
+  } finally {
+    // Always close the connection
+    if (connection) {
+      await connection.close();
+    }
   }
 }
 
+// ... (The rest of the functions in issueController.js remain unchanged)
 async function getAllIssues(req, res) {
   try {
     const result = await executeQuery(
@@ -346,6 +381,7 @@ async function getIssuesByStatus(req, res) {
     res.status(500).json({ message: "Internal server error occurred" });
   }
 }
+
 
 module.exports = { 
   createIssue, 

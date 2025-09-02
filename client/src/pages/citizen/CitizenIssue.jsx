@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../../styles/citizen/CitizenIssue.css";
 
+// Assume you have an AuthContext or similar to get the user's token
+// import { useAuth } from '../../context/AuthContext'; 
+
 function CitizenIssue() {
+  // const { token } = useAuth(); // Example of getting token from context
+
   const [formData, setFormData] = useState({
-    citizenName: "",
-    citizenEmail: "",
-    citizenPhone: "",
-    citizenAddress: "",
     title: "",
     description: "",
     category: "",
     priority: "medium",
-    location: "",
+    upazila: "",
+    district: "",
+    full_address: "",
     imageUrl: ""
   });
   const [message, setMessage] = useState("");
@@ -57,13 +60,12 @@ function CitizenIssue() {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.citizenName.trim()) newErrors.citizenName = "Name is required";
-    if (!formData.citizenEmail.trim()) newErrors.citizenEmail = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(formData.citizenEmail)) newErrors.citizenEmail = "Invalid email format";
     if (!formData.title.trim()) newErrors.title = "Issue title is required";
     if (!formData.description.trim()) newErrors.description = "Issue description is required";
     if (!formData.category) newErrors.category = "Please select a category";
-    if (!formData.location.trim()) newErrors.location = "Location is required";
+    if (!formData.district.trim()) newErrors.district = "District is required";
+    if (!formData.upazila.trim()) newErrors.upazila = "Upazila/Thana is required";
+    if (!formData.full_address.trim()) newErrors.full_address = "Full address is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -76,23 +78,29 @@ function CitizenIssue() {
 
     setIsSubmitting(true);
     try {
-      const res = await axios.post("http://localhost:3000/api/issues", formData);
-      setMessage(res.data.message);
+      // The user's identity is determined by the auth token sent in the headers.
+      // The backend will extract the citizen_id from the token.
+      const apiHeaders = {
+        headers: {
+          // 'Authorization': `Bearer ${token}` // Uncomment when AuthContext is integrated
+        }
+      };
+
+      const res = await axios.post("http://localhost:3000/api/issues", formData, apiHeaders);
+      setMessage({ type: 'success', text: res.data.message });
       setFormData({
-        citizenName: "",
-        citizenEmail: "",
-        citizenPhone: "",
-        citizenAddress: "",
         title: "",
         description: "",
         category: "",
         priority: "medium",
-        location: "",
+        upazila: "",
+        district: "",
+        full_address: "",
         imageUrl: ""
       });
       setErrors({});
     } catch (err) {
-      setMessage(err.response?.data?.message || "Error submitting issue. Please try again.");
+      setMessage({ type: 'error', text: err.response?.data?.message || "Error submitting issue. Please try again."});
     } finally {
       setIsSubmitting(false);
     }
@@ -101,6 +109,7 @@ function CitizenIssue() {
   return (
     <div className="issue-page">
       <div className="hero-section">
+        {/* Hero content remains the same */}
         <div className="hero-content">
           <h1>Report Community Issues</h1>
           <p>Help make your community better by reporting issues that need attention</p>
@@ -128,75 +137,16 @@ function CitizenIssue() {
         </div>
 
         {message && (
-          <div className={`alert ${message.includes('Error') ? 'alert-error' : 'alert-success'}`}>
+          <div className={`alert ${message.type === 'error' ? 'alert-error' : 'alert-success'}`}>
             <div className="alert-icon">
-              {message.includes('Error') ? '⚠️' : '✅'}
+              {message.type === 'error' ? '⚠️' : '✅'}
             </div>
-            <span>{message}</span>
+            <span>{message.text}</span>
           </div>
         )}
 
         <form className="issue-form" onSubmit={handleSubmit}>
-          <div className="form-section">
-            <h3>Personal Information</h3>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="citizenName">Full Name *</label>
-                <input
-                  id="citizenName"
-                  type="text"
-                  name="citizenName"
-                  placeholder="Enter your full name"
-                  value={formData.citizenName}
-                  onChange={handleInputChange}
-                  className={errors.citizenName ? 'error' : ''}
-                  required
-                />
-                {errors.citizenName && <span className="error-text">{errors.citizenName}</span>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="citizenEmail">Email Address *</label>
-                <input
-                  id="citizenEmail"
-                  type="email"
-                  name="citizenEmail"
-                  placeholder="your.email@example.com"
-                  value={formData.citizenEmail}
-                  onChange={handleInputChange}
-                  className={errors.citizenEmail ? 'error' : ''}
-                  required
-                />
-                {errors.citizenEmail && <span className="error-text">{errors.citizenEmail}</span>}
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="citizenPhone">Phone Number</label>
-                <input
-                  id="citizenPhone"
-                  type="tel"
-                  name="citizenPhone"
-                  placeholder="+880 1XXX-XXXXXX"
-                  value={formData.citizenPhone}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="citizenAddress">Your Address</label>
-                <input
-                  id="citizenAddress"
-                  type="text"
-                  name="citizenAddress"
-                  placeholder="Your residential address"
-                  value={formData.citizenAddress}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-          </div>
+          {/* Personal Information section has been removed */}
 
           <div className="form-section">
             <h3>Issue Details</h3>
@@ -249,19 +199,50 @@ function CitizenIssue() {
               {errors.title && <span className="error-text">{errors.title}</span>}
             </div>
 
+            <div className="form-row">
+                <div className="form-group">
+                    <label htmlFor="district">District *</label>
+                    <input
+                        id="district"
+                        type="text"
+                        name="district"
+                        placeholder="e.g., Dhaka"
+                        value={formData.district}
+                        onChange={handleInputChange}
+                        className={errors.district ? 'error' : ''}
+                        required
+                    />
+                    {errors.district && <span className="error-text">{errors.district}</span>}
+                </div>
+                <div className="form-group">
+                    <label htmlFor="upazila">Upazila / Thana *</label>
+                    <input
+                        id="upazila"
+                        type="text"
+                        name="upazila"
+                        placeholder="e.g., Gulshan"
+                        value={formData.upazila}
+                        onChange={handleInputChange}
+                        className={errors.upazila ? 'error' : ''}
+                        required
+                    />
+                    {errors.upazila && <span className="error-text">{errors.upazila}</span>}
+                </div>
+            </div>
+            
             <div className="form-group">
-              <label htmlFor="location">Location of Issue *</label>
+              <label htmlFor="full_address">Full Address of Issue *</label>
               <input
-                id="location"
+                id="full_address"
                 type="text"
-                name="location"
+                name="full_address"
                 placeholder="Street address, landmark, or area where issue is located"
-                value={formData.location}
+                value={formData.full_address}
                 onChange={handleInputChange}
-                className={errors.location ? 'error' : ''}
+                className={errors.full_address ? 'error' : ''}
                 required
               />
-              {errors.location && <span className="error-text">{errors.location}</span>}
+              {errors.full_address && <span className="error-text">{errors.full_address}</span>}
             </div>
 
             <div className="form-group">
@@ -306,6 +287,7 @@ function CitizenIssue() {
           </button>
         </form>
 
+        {/* Info/Contact sections remain the same */}
         <div className="info-section">
           <h3>What Happens Next?</h3>
           <div className="process-steps">
@@ -332,7 +314,6 @@ function CitizenIssue() {
             </div>
           </div>
         </div>
-
         <div className="contact-info">
           <h3>Need Immediate Assistance?</h3>
           <div className="emergency-contacts">
@@ -347,6 +328,7 @@ function CitizenIssue() {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
