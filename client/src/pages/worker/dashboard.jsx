@@ -52,10 +52,6 @@ function WorkerDashboard() {
                 return <Profile />;
             case "Issues":
                 return <IssueList />;
-            // case "Applications":
-            //     return <Applications />;
-            // case "Review Problems":
-            //     return <ReviewProblems />;
             default:
                 return null;
         }
@@ -89,13 +85,6 @@ function WorkerDashboard() {
                             <i className="bx bx-user"> Profile</i>
                         </button>
 
-                        {/* <button
-                            onClick={() => handleTabChange("Applications")}
-                            style={currentTab === "Applications" ? { backgroundColor: "#bcd6fbff" } : {}}
-                        >
-                            <i className="bx bx-check"> Total Applications</i>
-                        </button> */}
-
                         <button
                             onClick={() => handleTabChange("Issues")}
                             style={currentTab === "Issues" ? { backgroundColor: "#bcd6fbff" } : {}}
@@ -103,12 +92,6 @@ function WorkerDashboard() {
                             <i className="bx bx-time"> View Issues</i>
                         </button>
 
-                        {/* <button
-                            onClick={() => handleTabChange("Review Problems")}
-                            style={currentTab === "Review Problems" ? { backgroundColor: "#bcd6fbff" } : {}}
-                        >
-                            <i className="bx bx-briefcase"> Review Problems</i>
-                        </button> */}
                     </div>
                 </div>
             )}

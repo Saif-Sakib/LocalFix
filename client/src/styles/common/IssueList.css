@@ -1,25 +1,28 @@
 .issue-page-container {
 	width: 100%;
-	height: 100%;
-	/* background-color: black; */
-	/* padding: 30px 20px; */
+	height: 90vh;
 }
 
 .header {
 	text-align: center;
 	margin-bottom: 40px;
+	height: 5%;
 }
 
-.header h1 {
-	font-size: 2.5rem;
-	color: #333;
-	margin-bottom: 10px;
-	font-weight: 600;
+.filter-dropdown {
+	display: flex;
+	width: 15%;
+	height: 100%;
+	margin-left: 20px;
+	border-radius: 5px;
+	justify-content: center;
+	text-align: center;
+	border-color: #3b82f6;
 }
 
-.header p {
-	font-size: 1.1rem;
-	color: #666;
+.filter-dropdown:hover {
+	cursor: pointer;
+	border-color: #3b82f6;
 }
 
 .loading-container {
@@ -32,7 +35,6 @@
 }
 
 .issue-scrollpane {
-	/* background-color: black; */
 	width: 100%;
 	display: flex;
 	flex-direction: row;
@@ -61,9 +63,28 @@
 }
 
 .card-header {
-	background: linear-gradient(135deg, #4f46e5, #7c3aed);
 	padding: 15px;
 	color: white;
+}
+
+.card-header.submitted {
+	background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+.card-header.assigned {
+	background: linear-gradient(135deg, #10b981, #3b82f6);
+}
+
+.card-header.in_progress {
+	background: linear-gradient(135deg, #f97316, #f59e0b);
+}
+
+.card-header.resolved {
+	background: linear-gradient(135deg, #0c9841, #29fc88);
+}
+
+.card-header.closed {
+	background: linear-gradient(135deg, #6b7280, #374151);
 }
 
 .card-title {
@@ -95,18 +116,23 @@
 	font-weight: 600;
 }
 
+.priority-urgent {
+	background-color: rgb(255, 0, 0);
+	color: white;
+}
+
 .priority-high {
-	background-color: #ef4444;
+	background-color: rgb(255, 166, 0);
 	color: white;
 }
 
 .priority-medium {
-	background-color: #f59e0b;
+	background-color: rgb(251, 206, 92);
 	color: white;
 }
 
 .priority-low {
-	background-color: #10b981;
+	background-color: rgb(16, 185, 129);
 	color: white;
 }
 
@@ -136,39 +162,6 @@
 	font-weight: 600;
 }
 
-.work-details {
-	background-color: #f8f9fa;
-	padding: 15px;
-	border-radius: 8px;
-	margin: 20px 0;
-}
-
-.detail-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-	gap: 15px;
-}
-
-.detail-item {
-	display: flex;
-	flex-direction: column;
-}
-
-.detail-label {
-	font-size: 0.75rem;
-	color: #666;
-	text-transform: uppercase;
-	font-weight: 600;
-	letter-spacing: 0.5px;
-	margin-bottom: 3px;
-}
-
-.detail-value {
-	font-size: 0.9rem;
-	color: #333;
-	font-weight: 500;
-}
-
 .created-date {
 	padding-top: 15px;
 	border-top: 1px solid #e0e0e0;
@@ -194,6 +187,7 @@
 	padding: 20px;
 	background-color: #f8f9fa;
 	display: flex;
+	justify-content: space-between;
 	gap: 10px;
 }
 
@@ -214,6 +208,22 @@
 	color: white;
 }
 
+.payment-details {
+	background-color: #09cc26db;
+	color: white;
+	border: none;
+	padding: 12px 20px;
+	border-radius: 8px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 0.95rem;
+}
+
+.payment-details:hover {
+	background-color: rgb(6, 155, 11);
+}
+
 .empty-state {
 	text-align: center;
 	padding: 60px 20px;
@@ -232,16 +242,8 @@
 		grid-template-columns: 1fr;
 	}
 
-	.header h1 {
-		font-size: 2rem;
-	}
-
 	.card-footer {
 		flex-direction: column;
-	}
-
-	.detail-grid {
-		grid-template-columns: 1fr;
 	}
 
 	.container {
@@ -252,10 +254,6 @@
 @media (max-width: 480px) {
 	.issue-page {
 		padding: 20px 0;
-	}
-
-	.header h1 {
-		font-size: 1.8rem;
 	}
 
 	.card-header {

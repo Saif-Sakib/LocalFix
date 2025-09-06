@@ -1,13 +1,18 @@
 import React,{ useState} from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { PieChart, Pie , Cell } from "recharts";
+import { LineChart, Line, ResponsiveContainer} from "recharts";
 import "../../styles/admin/home.css"
 
 function Home() {
   
     const [month, set_month] = useState([]);
-    const [work,set_work] = useState([]);
     const [category,set_category] = useState([]);
+    const [average,set_average] = useState([]);
+    const [citizen,set_citizen] = useState(100);
+    const [worker,set_worker] = useState(50);
+    const [total_open_issue,set_total_open_issue] = useState(5);
+    const [pending_issues,set_pending_issues] = useState(2);
 
     const COLORS = ["#0088FE", "#00C49F", "#9b0ef3ff", "#FF8042", "#a2ac49ff"];
 
@@ -23,18 +28,21 @@ function Home() {
         ]);
     }
 
-    const check_work = () => {
-        // code to get the current status of tickets
-        set_work([
-            { name: "Assigned", value: 10 },
-            { name: "Solved", value: 6 },
-            { name: "Pending", value: 4 },
-            { name: "Added Today", value: 2 },
-            { name: "Solved Today", value: 1 }
+    const check_average = () => {
+        // code to get the average solved and added per day for last 7 days
+        set_average([
+            { date: "2025-08-30", avgResolution: 5.2, avgAdded: 7.1 },
+            { date: "2025-08-31", avgResolution: 3.8, avgAdded: 6.4 },
+            { date: "2025-09-01", avgResolution: 4.5, avgAdded: 5.9 },
+            { date: "2025-09-02", avgResolution: 2.9, avgAdded: 4.8 },
+            { date: "2025-09-03", avgResolution: 6.1, avgAdded: 8.2 },
+            { date: "2025-09-04", avgResolution: 4.0, avgAdded: 6.7 },
+            { date: "2025-09-05", avgResolution: 3.4, avgAdded: 5.1 }
         ]);
     }
 
     const check_category = () => {
+        // code to get the category wise issue count
         set_category([
             { name: "Road", value: 10 },
             { name: "Garbage", value: 6 },
@@ -42,11 +50,6 @@ function Home() {
             { name: "Electricity", value: 2 }
         ]);
     }
-
-    const [citizen,set_citizen] = useState(100);
-    const [worker,set_worker] = useState(50);
-    const [total_open_issue,set_total_open_issue] = useState(5);
-    const [pending_issues,set_pending_issues] = useState(2);
 
     const check_citizen = () => {
         // code to get the total number of citizen
@@ -70,7 +73,7 @@ function Home() {
 
     const check_info = () => {
         check_month();
-        check_work();
+        check_average();
         check_category();
         check_citizen();
         check_worker();
@@ -82,6 +85,35 @@ function Home() {
         console.log("Fetching data...");
         check_info();
     }, []);
+
+    
+    function formatDateTicks(ticks, index, allTicks) {
+        const date = new Date(ticks);
+        const day = date.getDate();
+        const month = date.toLocaleString("default", { month: "short" });
+        const year = date.getFullYear();
+
+        // First tick always shows full (Day Mon)
+        if (index === 0) return `${day} ${month}`;
+
+        const prevDate = new Date(allTicks[index - 1]);
+
+        // Same month & year → show only day
+        if (
+            date.getMonth() === prevDate.getMonth() &&
+            date.getFullYear() === prevDate.getFullYear()
+        ) {
+            return `${day}`;
+        }
+
+        // Same year but different month → show month
+        if (date.getFullYear() === prevDate.getFullYear()) {
+            return `${month}`;
+        }
+
+        // Different year → show year
+        return `${year}`;
+    }
 
     return (
         <div className="home-container">
@@ -107,14 +139,14 @@ function Home() {
                     <div className="data-set">
                         <div className="data">
                             <h3>
-                                ⚠️ Total Open Issues
+                                <i class='bx bx-error' /> Total Open Issues
                             </h3>
                             <p>{total_open_issue}</p>
                         </div>
 
                         <div className="data">
                             <h3>
-                                🕓 Pending Issues
+                                <i class='bx bx-time' /> Pending Issues
                             </h3>
                             <p>{pending_issues}</p>
                         </div>
@@ -155,24 +187,42 @@ function Home() {
                     </BarChart>
                 </div>
 
-                <div className="chart-card">
-                    <h4 className="graph-title">Current Month Analysis</h4>
-                    <PieChart width={350} height={250}>
-                        <Pie
-                            data={work}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={70}
-                            dataKey="value"
-                            label
-                        >
-                            {work.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip />
-                    </PieChart>
+                <div className="chart-card" style={{width: "40%"}}>
+                    <h4 className="graph-title">Average Solved vs Added per Day</h4>
+                    <ResponsiveContainer width={350} height={250}>
+                        <LineChart data={average}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis
+                                dataKey="date"
+                                tickFormatter={(tick, index) =>
+                                formatDateTicks(tick, index, average.map((d) => d.date))
+                                }
+                            />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+
+                            <Line
+                                type="monotone"
+                                dataKey="avgResolution"
+                                stroke="#8884d8"
+                                strokeWidth={2}
+                                activeDot={{ r: 6 }}
+                                name="Avg Solved"
+                            />
+
+                            <Line
+                                type="monotone"
+                                dataKey="avgAdded"
+                                stroke="#82ca9d"
+                                strokeWidth={2}
+                                activeDot={{ r: 6 }}
+                                name="Avg Added"
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
+
             </div>
         </div>
     );

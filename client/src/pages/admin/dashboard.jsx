@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Home from "./home";
-import Applications from "./total_applications";
-import ReviewProblems from "./review_problem";
 import IssueList from "../common/IssueList";
 import Profile from "../common/profile"
 import "../../styles/common/dashboard.css";
@@ -54,10 +52,6 @@ function AdminDashboard() {
                 return <Profile />;
             case "Issues":
                 return <IssueList />;
-            case "Applications":
-                return <Applications />;
-            case "Review Problems":
-                return <ReviewProblems />;
             default:
                 return null;
         }
@@ -91,24 +85,10 @@ function AdminDashboard() {
                         </button>
 
                         <button
-                            onClick={() => handleTabChange("Applications")}
-                            style={currentTab === "Applications" ? { backgroundColor: "#bcd6fbff" } : {}}
-                        >
-                            <i className="bx bx-check"> Total Applications</i>
-                        </button>
-
-                        <button
                             onClick={() => handleTabChange("Issues")}
                             style={currentTab === "Issues" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
-                            <i className="bx bx-time"> View Issues</i>
-                        </button>
-
-                        <button
-                            onClick={() => handleTabChange("Review Problems")}
-                            style={currentTab === "Review Problems" ? { backgroundColor: "#bcd6fbff" } : {}}
-                        >
-                            <i className="bx bx-briefcase"> Review Problems</i>
+                            <i className="bx bx-book-content"> View Issues</i>
                         </button>
                     </div>
                 </div>
