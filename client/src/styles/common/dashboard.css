@@ -1,142 +1,306 @@
 .dashboard-container {
-    place-items: center;
     display: flex;
-    position: relative;
     width: 100vw;
     height: 100vh;
-    background: white;
-    transition: all 0.6s ease-in-out;
+    background: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-.dashboard-container header {
-    margin: 0px;
-    height: 10vh;
-    align-items: center;
+/* Sidebar Styles */
+.left-panel {
+    width: 280px;
+    min-width: 280px;
+    height: 100vh;
+    background: white;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
     display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(229, 231, 235, 0.8);
+    animation: slideInLeft 0.3s ease-out forwards;
+    position: relative;
+    z-index: 100;
+}
+
+.left-panel header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: auto;
+    min-height: 80px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    text-decoration: none;
+}
+
+.logo:hover {
+    transform: scale(1.02);
+}
+
+.logo-icon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    transition: all 0.2s ease;
+}
+
+.logo:hover .logo-icon {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+}
+
+.logo-icon span {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
 }
 
 .toggle-btn {
     width: 40px;
     height: 40px;
-    margin-bottom: 15px;
-    border-radius: 20px;
-    background-color: white;
-    color: blue;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 18px;
 }
 
 .toggle-btn:hover {
-    background-color: #e6edf7;
-}
-
-.left-panel {
-    width: 15%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    padding: 15px;
-    box-shadow: 0px 0 20px rgba(0,0,0,.1);
-    animation: left-to-right 0.25s ease-in-out forwards;
-}
-
-.left-panel header {
-    display: flex;
-    justify-content: right;
-}
-
-.left-hide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 60px;
-    width: 10%;
-    padding: 15px;
-    background-color: white;
-    animation: right-to-left 0.25s ease-in-out forwards;
+    background: rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
 .left-button {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    height: 100%;
+    padding: 20px 16px;
+    gap: 8px;
+    flex: 1;
 }
 
 .left-button button {
     display: flex;
-    width: 100%;
-    height: 10%;
-    margin: 4px 5px 4px 3px;
-    justify-content: left;
     align-items: center;
-    padding-left: 10px;
-    background-color: white;
-    color: black;
+    gap: 12px;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: #64748b;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
 }
 
 .left-button button:hover {
-    background-color: #e6edf7;
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
+    transform: translateX(4px);
 }
 
+.left-button button i {
+    font-size: 18px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+}
+
+/* Active button style */
+.left-button button[style*="background-color: #bcd6fbff"] {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+    color: white !important;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.left-button button[style*="background-color: #bcd6fbff"]:hover {
+    transform: translateX(0) translateY(-1px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Collapsed sidebar */
+.left-hide {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: slideInLeft 0.3s ease-out forwards;
+}
+
+.left-hide header {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    border: none;
+}
+
+.left-hide .toggle-btn {
+    margin: 0;
+}
+
+/* Main Content Area */
 .right-panel {
-    width: 85%;
-    height: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f8fafc;
+    transition: all 0.3s ease;
 }
 
 .right-panel header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    padding: 0 24px;
     display: flex;
-    justify-content: right;
-    background-color: white;
-    box-shadow: 0px 0 20px rgba(0,0,0,.1);
+    justify-content: flex-end;
+    align-items: center;
+    height: 80px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
 }
 
 .right-panel header button {
-    padding: 20px;
-    height: 100%;
-    margin-left: 20px;
-    background-color: white;
-    color: rgb(89, 34, 238);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
 }
 
 .right-panel header button:hover {
-    background-color: #e6edf7;
+    background: #dc2626;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.right-panel header button i {
+    font-size: 16px;
 }
 
 .main-container {
-    max-height: 90vh;
-    max-width: 100%;
-    display: flex;
-    justify-content: space-around;
-
-    /* Add scrollbars */
+    flex: 1;
+    padding: 24px;
     overflow-x: auto;
     overflow-y: auto;
-
-    /* Optional: smooth scrolling */
     scroll-behavior: smooth;
-
-    /* Keep some padding */
-    /* padding: 10px; */
 }
 
-
-@keyframes left-to-right {
-    0% {
+/* Animations */
+@keyframes slideInLeft {
+    from {
         transform: translateX(-100%);
         opacity: 0;
     }
-    100% {
-        transform: translateX(0%);
+    to {
+        transform: translateX(0);
         opacity: 1;
     }
 }
 
-@keyframes right-to-left {
-    0% {
-        transform: translateX(100%);
-    }
-    100% {
+@keyframes slideOutLeft {
+    from {
         transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
     }
 }
 
+/* Mobile Responsive */
+@media (max-width: 900px) {
+    .left-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        z-index: 1000;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .right-panel {
+        width: 100% !important;
+    }
+    
+    .left-hide {
+        width: 60px;
+        height: 60px;
+        border-radius: 0 0 16px 0;
+    }
+    
+    .main-container {
+        padding: 16px;
+    }
+    
+    .right-panel header {
+        padding: 0 16px;
+        height: 70px;
+    }
+}
+
+@media (max-width: 640px) {
+    .logo-text {
+        font-size: 18px;
+    }
+    
+    .left-button button {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+    
+    .main-container {
+        padding: 12px;
+    }
+}
