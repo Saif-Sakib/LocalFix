@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../../styles/citizen/CitizenIssue.css";
+import "../../styles/citizen/postIssue.css";
 
 // Assume you have an AuthContext or similar to get the user's token
 // import { useAuth } from '../../context/AuthContext'; 
 
-function CitizenIssue() {
+function PostIssue() {
   // const { token } = useAuth(); // Example of getting token from context
 
   const [formData, setFormData] = useState({
@@ -334,4 +334,4 @@ function CitizenIssue() {
   );
 }
 
-export default CitizenIssue;
+export default PostIssue;

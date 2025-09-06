@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Profile from "../common/profile";
-import CitizenIssue from "./CitizenIssue";
+import PostIssue from "./postIssue";
+import MyJobs from "./myJobs";
 import IssueList from "../common/IssueList";
 import "../../styles/common/dashboard.css";
 
@@ -55,10 +56,12 @@ function CitizenDashboard() {
         switch (currentTab) {
             case "Profile":
                 return <Profile />;
-            case "Issues":
-                return <CitizenIssue />;
-            case "View Issue":
+            case "Post Issue":
+                return <PostIssue />;
+            case "View Issues":
                 return <IssueList />;
+            case "My Jobs":
+                return <MyJobs />;
             default:
                 return (
                     <div style={{ 
@@ -123,19 +126,27 @@ function CitizenDashboard() {
                         </button>
 
                         <button
-                            onClick={() => handleTabChange("Issues")}
-                            style={currentTab === "Issues" ? { backgroundColor: "#bcd6fbff" } : {}}
+                            onClick={() => handleTabChange("Post Issue")}
+                            style={currentTab === "Post Issue" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-time"></i>
-                            <span>Add Issue</span>
+                            <span>Post Issue</span>
                         </button>
 
                         <button
-                            onClick={() => handleTabChange("View Issue")}
-                            style={currentTab === "View Issue" ? { backgroundColor: "#bcd6fbff" } : {}}
+                            onClick={() => handleTabChange("My Jobs")}
+                            style={currentTab === "My Jobs" ? { backgroundColor: "#bcd6fbff" } : {}}
+                        >
+                            <i className="bx bx-time"></i>
+                            <span>My Posts</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleTabChange("View Issues")}
+                            style={currentTab === "View Issues" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-briefcase"></i>
-                            <span>View Issue</span>
+                            <span>View Issues</span>
                         </button>
                     </div>
                 </div>

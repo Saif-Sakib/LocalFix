@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Profile from "../common/profile";
 import IssueList from "../common/IssueList";
+import MyApplications from "./myApplications";
 import "../../styles/common/dashboard.css";
 
 function WorkerDashboard() {
@@ -56,6 +57,8 @@ function WorkerDashboard() {
                 return <Profile />;
             case "Issues":
                 return <IssueList />;
+            case "MyApplications":
+                return <MyApplications />;
             default:
                 return (
                     <div style={{ 
@@ -125,6 +128,14 @@ function WorkerDashboard() {
                         >
                             <i className="bx bx-time"></i>
                             <span>View Issues</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleTabChange("MyApplications")}
+                            style={currentTab === "MyApplications" ? { backgroundColor: "#bcd6fbff" } : {}}
+                        >
+                            <i className="bx bx-time"></i>
+                            <span>My Appliations</span>
                         </button>
                     </div>
                 </div>

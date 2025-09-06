@@ -1,6 +1,6 @@
 function ReviewProblems() {
     return (
-        <h1>Problems</h1>
+        <h1>Problems(Assigned, Applications, Submitted Proof)</h1>
     );
 }
 
