@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from '../../context/AuthContext';
 import axios from "axios";
 import '../../styles/common/IssueList.css'; // Make sure this path matches your CSS file
 
@@ -7,6 +8,8 @@ function IssueList() {
 	const [loading, setLoading] = useState(true);
 	const [filter_issue, setFilterIssue] = useState('all');
 	const [sort_by, setSortBy] = useState('date_desc');
+	const { user } = useAuth();
+	const user_type = user?.user_type;
 
 	useEffect(() => {
 		//code to get the user type
@@ -195,7 +198,17 @@ function IssueList() {
 									>
 										View Details
 									</button>
+									
+									{user_type === 'worker' && issue.STATUS === 'submitted' && 
+										<button
+											className="btn-details"
+											
+										>
+											Apply
+										</button>
+									}
 								</div>
+
 							</div>
 						))}
 				</div>
