@@ -188,8 +188,8 @@
 
 .right-panel header {
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(229, 231, 235, 0.5);
     padding: 0 24px;
     display: flex;

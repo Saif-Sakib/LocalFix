@@ -319,10 +319,36 @@ const updateProfile = async (req, res) => {
     }
 };
 
+// Delete account for current user
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const deleted = await User.delete(userId);
+        if (!deleted) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found or already deleted'
+            });
+        }
+        clearAuthCookie(res);
+        res.json({
+            success: true,
+            message: 'Account deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete account error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete account'
+        });
+    }
+};
+
 module.exports = {
     register,
     login,
     logout,
     getProfile,
-    updateProfile
+    updateProfile,
+    deleteAccount
 };

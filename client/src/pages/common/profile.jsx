@@ -158,8 +158,27 @@ function Profile() {
 
     }
 
-    const handle_delete_account = () => {
-        
+    const handle_delete_account = async () => {
+        if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+        setLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const response = await axios.delete('/api/auth/delete');
+            if (response.data.success) {
+                setSuccess('Account deleted successfully. You will be logged out.');
+                // Optionally, redirect or clear user context after short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                setError(response.data.message || 'Failed to delete account');
+            }
+        } catch (error) {
+            setError(error.response?.data?.message || 'Failed to delete account');
+        } finally {
+            setLoading(false);
+        }
     }
 
     // Show loading spinner if initial load or if no user data
@@ -383,10 +402,11 @@ function Profile() {
 
                             <button
                                 className='final-button'
-                                
                                 style={{backgroundColor:'red'}}
+                                onClick={handle_delete_account}
+                                disabled={loading}
                             >
-                                Delete Account
+                                {loading ? 'Deleting...' : 'Delete Account'}
                             </button>
                         </div>
                     </div>

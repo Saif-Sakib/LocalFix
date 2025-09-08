@@ -162,7 +162,6 @@ const HomePage = () => {
 				</div>
 			</section>
 
-			{/* User Types Section */}
 			<section className="user-types">
 				<div className="container">
 					<div className="section-header">
@@ -171,9 +170,8 @@ const HomePage = () => {
 					</div>
 
 					<div className="user-types-grid">
-						{/* Citizens */}
+						
 						<div className="user-type-card user-citizen">
-							<div className="user-type-bg"></div>
 							<div className="user-type-content">
 								<div className="user-type-emoji">👥</div>
 								<h3>Citizens</h3>
@@ -186,9 +184,7 @@ const HomePage = () => {
 							</div>
 						</div>
 
-						{/* Workers */}
 						<div className="user-type-card user-worker">
-							<div className="user-type-bg"></div>
 							<div className="user-type-content">
 								<div className="user-type-emoji">🔨</div>
 								<h3>Workers</h3>
@@ -201,9 +197,7 @@ const HomePage = () => {
 							</div>
 						</div>
 
-						{/* Admins */}
 						<div className="user-type-card user-admin">
-							<div className="user-type-bg"></div>
 							<div className="user-type-content">
 								<div className="user-type-emoji">👨‍💼</div>
 								<h3>Admins</h3>
@@ -256,38 +250,9 @@ const HomePage = () => {
 				</div>
 			</section>
 
-			{/* Stats Section */}
-			<section className="stats">
-				<div className="container">
-					<div className="section-header stats-header">
-						<h2>Making a Real Impact</h2>
-						<p>Join thousands of community members already using LocalFix</p>
-					</div>
-
-					<div className="stats-grid">
-						<div className="stat-item">
-							<div className="stat-number">1,000+</div>
-							<p>Issues Resolved</p>
-						</div>
-						<div className="stat-item">
-							<div className="stat-number">500+</div>
-							<p>Active Workers</p>
-						</div>
-						<div className="stat-item">
-							<div className="stat-number">50+</div>
-							<p>Communities Served</p>
-						</div>
-						<div className="stat-item">
-							<div className="stat-number">4.8★</div>
-							<p>Average Rating</p>
-						</div>
-					</div>
-				</div>
-			</section>
-
 			{/* CTA Section */}
 			<section className="cta">
-				<div className="container">
+				<div className="container" style={{display:'flex', alignItems:'center'}}>
 					<div className="cta-card">
 						<h2>Ready to Transform Your Community?</h2>
 						<p>
@@ -310,7 +275,7 @@ const HomePage = () => {
 
 			{/* Footer */}
 			<footer className="footer">
-				<div className="container">
+				<div className="container" style={{padding:'30px'}}>
 					<div className="footer-content">
 						<div className="footer-brand">
 							<div className="footer-logo">

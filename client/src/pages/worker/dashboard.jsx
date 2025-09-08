@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Profile from "../common/profile";
 import IssueList from "../common/IssueList";
-import MyApplications from "./myApplications";
+import MyApplications from "./myApplications/myApplications";
 import "../../styles/common/dashboard.css";
 
 function WorkerDashboard() {

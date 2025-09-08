@@ -1,39 +1,29 @@
 .issue-page-container {
 	width: 100%;
 	height: 90vh;
-	overflow: hidden;
+	overflow-y: auto;
 }
 
 .header {
 	text-align: center;
-	margin-bottom: 20px;
-	height: 60px;
-	display: flex;
-	gap: 1rem;
-	align-items: center;
-	justify-content: center;
+	margin-bottom: 40px;
+	height: 5%;
 }
 
 .filter-dropdown {
-	width: 200px;
-	height: 40px;
+	display: flex;
+	width: 15%;
+	height: 100%;
+	margin-left: 20px;
 	border-radius: 5px;
-	border: 2px solid #3b82f6;
+	justify-content: center;
 	text-align: center;
-	font-size: 14px;
-	padding: 0 10px;
-	background: white;
+	border-color: #3b82f6;
 }
 
 .filter-dropdown:hover {
 	cursor: pointer;
-	border-color: #2563eb;
-}
-
-.filter-dropdown:focus {
-	outline: none;
-	border-color: #1d4ed8;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	border-color: #3b82f6;
 }
 
 .loading-container {
@@ -47,70 +37,39 @@
 
 .issue-scrollpane {
 	width: 100%;
-	height: calc(90vh - 100px);
+	display: flex;
+	flex-direction: row;
 	overflow-y: auto;
-	padding: 0 20px;
-	box-sizing: border-box;
 }
 
 .issues-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-	gap: 20px;
-	width: 100%;
-	padding-bottom: 20px;
-}
-
-/* Card Container with Flip Animation - FIXED HEIGHT */
-.issue-card-container {
-	perspective: 1000px;
-	height: 400px; /* Fixed height to prevent size changes and overlap */
-	width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
+  gap: 20px;
+  width: 100%;
 }
 
 .issue-card {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	transition: transform 0.6s ease-in-out;
-	transform-style: preserve-3d;
-}
-
-.issue-card-container.flipped .issue-card {
-	transform: rotateY(180deg);
-}
-
-.card-front, .card-back {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	backface-visibility: hidden;
 	background: white;
 	border-radius: 12px;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
 	border: 1px solid #e0e0e0;
+	height: 360px;
 	display: flex;
 	flex-direction: column;
-	overflow: hidden;
 }
 
-.card-back {
-	transform: rotateY(180deg);
-}
-
-.issue-card-container:hover .card-front,
-.issue-card-container:hover .card-back {
+.issue-card:hover {
+	transform: translateY(-3px);
 	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .card-header {
+	/* height: ; */
 	padding: 15px;
 	color: white;
-	flex-shrink: 0;
-	min-height: 80px;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
 }
 
 .card-header.submitted {
@@ -136,72 +95,60 @@
 .card-title {
 	font-size: 1.1rem;
 	font-weight: 600;
+	margin-bottom: 12px;
 	line-height: 1.4;
-	margin: 0;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	margin: 0 0 12px 0;
 }
 
 .card-badges {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-top: 8px;
 }
 
 .job-id {
 	background: rgba(255, 255, 255, 0.2);
-	padding: 4px 10px;
-	border-radius: 12px;
-	font-size: 0.8rem;
+	padding: 5px 12px;
+	border-radius: 15px;
+	font-size: 0.85rem;
 	font-weight: 500;
 }
 
 .priority {
-	padding: 4px 10px;
-	border-radius: 12px;
-	font-size: 0.8rem;
+	padding: 5px 12px;
+	border-radius: 15px;
+	font-size: 0.85rem;
 	font-weight: 600;
 }
 
 .priority-urgent {
-	background-color: #dc2626;
+	background-color: rgb(255, 0, 0);
 	color: white;
 }
 
 .priority-high {
-	background-color: #ea580c;
+	background-color: rgb(255, 166, 0);
 	color: white;
 }
 
 .priority-medium {
-	background-color: #d97706;
+	background-color: rgb(251, 206, 92);
 	color: white;
 }
 
 .priority-low {
-	background-color: #16a34a;
+	background-color: rgb(16, 185, 129);
 	color: white;
 }
 
 .card-body {
 	padding: 15px;
-	flex-grow: 1;
+	flex: 1 1 auto;
 	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-}
-
-.details-body {
-	overflow-y: auto;
-	flex-grow: 1;
 }
 
 .info-row {
-	margin-bottom: 12px;
+	margin-bottom: 15px;
 }
 
 .info-item {
@@ -210,189 +157,123 @@
 }
 
 .label {
-	font-size: 0.8rem;
-	color: #6b7280;
+	font-size: 0.85rem;
+	color: #666;
 	font-weight: 500;
-	margin-bottom: 4px;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
+	margin-bottom: 3px;
 }
 
 .value {
-	font-size: 0.95rem;
-	color: #374151;
+	font-size: 1rem;
+	color: #333;
 	font-weight: 600;
-	word-wrap: break-word;
-}
-
-.issue-image {
-	max-width: 100%;
-	height: 120px;
-	object-fit: cover;
-	border-radius: 8px;
-	margin-top: 5px;
 }
 
 .created-date {
-	margin-top: auto;
-	padding-top: 12px;
-	border-top: 1px solid #e5e7eb;
+	padding-top: 15px;
+	border-top: 1px solid #e0e0e0;
 	display: flex;
 	flex-direction: column;
 }
 
 .date-label {
-	font-size: 0.7rem;
-	color: #6b7280;
+	font-size: 0.75rem;
+	color: #666;
 	text-transform: uppercase;
 	font-weight: 600;
 	letter-spacing: 0.5px;
-	margin-bottom: 4px;
+	margin-bottom: 3px;
 }
 
 .date-value {
-	font-size: 0.85rem;
-	color: #374151;
-	font-weight: 500;
+	font-size: 0.9rem;
+	color: #333;
 }
 
 .card-footer {
-	padding: 15px;
-	background-color: #f9fafb;
+	padding: 10px 20px;
+	background-color: #f8f9fa;
 	display: flex;
 	justify-content: space-between;
 	gap: 10px;
-	flex-shrink: 0;
-	border-top: 1px solid #e5e7eb;
-	min-height: 60px; /* Ensure minimum height for footer */
-	max-height: 60px; /* Fixed height for footer */
+	min-height: 40px;
 	align-items: center;
-}
-
-.btn-apply, .btn-details, .payment-details {
-	flex: 1;
-	border: none;
-	padding: 10px 15px;
-	border-radius: 8px;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	font-size: 0.9rem;
-	text-align: center;
-}
-
-.btn-apply {
-	background-color: #16a34a;
-	color: white;
-}
-
-.btn-apply:hover {
-	background-color: #15803d;
-	transform: translateY(-1px);
 }
 
 .btn-details {
 	background-color: white;
 	color: #4f46e5;
 	border: 2px solid #4f46e5;
+	padding: 12px 20px;
+	border-radius: 8px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 0.95rem;
 }
 
 .btn-details:hover {
 	background-color: #4f46e5;
 	color: white;
-	transform: translateY(-1px);
 }
 
 .payment-details {
-	background-color: #16a34a;
+	background-color: #09cc26db;
 	color: white;
+	border: none;
+	padding: 12px 20px;
+	border-radius: 8px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	font-size: 0.95rem;
 }
 
 .payment-details:hover {
-	background-color: #15803d;
-	transform: translateY(-1px);
+	background-color: rgb(6, 155, 11);
 }
 
 .empty-state {
 	text-align: center;
 	padding: 60px 20px;
-	color: #6b7280;
+	color: #666;
 }
 
 .empty-state h3 {
 	font-size: 1.5rem;
 	margin-bottom: 10px;
-	color: #374151;
+	color: #333;
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
-	.issues-grid {
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	}
-}
-
 @media (max-width: 768px) {
-	.issue-page-container {
-		height: 100vh;
-	}
-	
-	.header {
-		flex-direction: column;
-		height: auto;
-		gap: 10px;
-		padding: 15px;
-		margin-bottom: 15px;
-	}
-
-	.filter-dropdown {
-		width: 100%;
-		max-width: 250px;
-	}
-
 	.issues-grid {
 		grid-template-columns: 1fr;
-		gap: 15px;
-	}
-
-	.issue-card-container {
-		height: 380px;
 	}
 
 	.card-footer {
 		flex-direction: column;
-		gap: 8px;
 	}
 
-	.issue-scrollpane {
+	.container {
 		padding: 0 15px;
-		height: calc(100vh - 140px);
 	}
 }
 
 @media (max-width: 480px) {
-	.issue-scrollpane {
-		padding: 0 10px;
+	.issue-page {
+		padding: 20px 0;
 	}
 
 	.card-header {
-		padding: 12px;
-		min-height: 70px;
-	}
-
-	.card-title {
-		font-size: 1rem;
+		padding: 15px;
 	}
 
 	.card-body {
-		padding: 12px;
+		padding: 15px;
 	}
 
 	.card-footer {
-		padding: 12px;
-	}
-
-	.issue-card-container {
-		height: 360px;
+		padding: 15px;
 	}
 }
