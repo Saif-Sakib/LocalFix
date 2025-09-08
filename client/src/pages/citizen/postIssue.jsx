@@ -16,11 +16,15 @@ function PostIssue() {
     upazila: "",
     district: "",
     full_address: "",
-    imageUrl: ""
+    image: null, // Changed from imageUrl to image to hold the file object
   });
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  
+  // --- Assuming your API server is running on port 5000 ---
+  const API_BASE_URL = "http://localhost:5000/api";
+
 
   const categories = [
     "Infrastructure",
@@ -57,6 +61,13 @@ function PostIssue() {
     }
   };
 
+  const handleFileChange = (e) => {
+    setFormData(prev => ({
+        ...prev,
+        image: e.target.files[0]
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -77,28 +88,67 @@ function PostIssue() {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    try {
-      // The user's identity is determined by the auth token sent in the headers.
-      // The backend will extract the citizen_id from the token.
-      const apiHeaders = {
-        headers: {
-          // 'Authorization': `Bearer ${token}` // Uncomment when AuthContext is integrated
-        }
-      };
+    setMessage(""); // Clear previous messages
 
-      const res = await axios.post("http://localhost:3000/api/issues", formData, apiHeaders);
-      setMessage({ type: 'success', text: res.data.message });
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        priority: "medium",
-        upazila: "",
-        district: "",
-        full_address: "",
-        imageUrl: ""
-      });
-      setErrors({});
+    try {
+        let imageUrl = "";
+
+        // **STEP 1: Upload image if it exists**
+        if (formData.image) {
+            const imageFormData = new FormData();
+            imageFormData.append('image', formData.image);
+
+            try {
+                const uploadRes = await axios.post(`${API_BASE_URL}/uploads/issue`, imageFormData);
+                if (uploadRes.data.success) {
+                    imageUrl = uploadRes.data.fileUrl;
+                } else {
+                    throw new Error(uploadRes.data.message || 'Image upload failed');
+                }
+            } catch (uploadError) {
+                setMessage({ type: 'error', text: uploadError.response?.data?.message || "Error uploading image." });
+                setIsSubmitting(false);
+                return; // Stop submission if image upload fails
+            }
+        }
+
+        // **STEP 2: Submit issue data (with optional imageUrl)**
+        const issueData = {
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            priority: formData.priority,
+            upazila: formData.upazila,
+            district: formData.district,
+            full_address: formData.full_address,
+            image_url: imageUrl, // FIXED: Changed from 'imageUrl' to 'image_url' to match backend
+        };
+
+        const apiHeaders = {
+            headers: {
+              // 'Authorization': `Bearer ${token}` // Uncomment when AuthContext is integrated
+            },
+            withCredentials: true // Important for sending cookies if using cookie-based auth
+        };
+
+        const res = await axios.post(`${API_BASE_URL}/issues`, issueData, apiHeaders);
+        
+        setMessage({ type: 'success', text: res.data.message });
+        // Reset form fields completely
+        setFormData({
+            title: "",
+            description: "",
+            category: "",
+            priority: "medium",
+            upazila: "",
+            district: "",
+            full_address: "",
+            image: null,
+        });
+        // Clear file input visually
+        document.getElementById("image").value = ""; 
+        setErrors({});
+
     } catch (err) {
       setMessage({ type: 'error', text: err.response?.data?.message || "Error submitting issue. Please try again."});
     } finally {
@@ -109,25 +159,6 @@ function PostIssue() {
   return (
     <div className="issue-page">
       <div className="hero-section">
-        {/* Hero content remains the same */}
-        <div className="hero-content">
-          <h1>Report Community Issues</h1>
-          <p>Help make your community better by reporting issues that need attention</p>
-          <div className="stats">
-            <div className="stat">
-              <span className="stat-number">2,847</span>
-              <span className="stat-label">Issues Resolved</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">96%</span>
-              <span className="stat-label">Response Rate</span>
-            </div>
-            <div className="stat">
-              <span className="stat-number">3.2</span>
-              <span className="stat-label">Avg Days to Resolve</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="issue-container">
@@ -262,16 +293,15 @@ function PostIssue() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="imageUrl">Image URL (Optional)</label>
+              <label htmlFor="image">Upload Image (Optional)</label>
               <input
-                id="imageUrl"
-                type="url"
-                name="imageUrl"
-                placeholder="https://example.com/image.jpg"
-                value={formData.imageUrl}
-                onChange={handleInputChange}
+                id="image"
+                type="file"
+                name="image"
+                accept="image/*"
+                onChange={handleFileChange}
               />
-              <small className="form-hint">Provide a link to an image that shows the issue (if available)</small>
+              <small className="form-hint">Choose an image that shows the issue</small>
             </div>
           </div>
 
@@ -286,51 +316,11 @@ function PostIssue() {
             )}
           </button>
         </form>
-
-        {/* Info/Contact sections remain the same */}
-        <div className="info-section">
-          <h3>What Happens Next?</h3>
-          <div className="process-steps">
-            <div className="step">
-              <div className="step-icon">📝</div>
-              <div className="step-content">
-                <h4>Review</h4>
-                <p>Your issue will be reviewed by our team within 24 hours</p>
-              </div>
-            </div>
-            <div className="step">
-              <div className="step-icon">🔍</div>
-              <div className="step-content">
-                <h4>Investigation</h4>
-                <p>We'll investigate and determine the appropriate department to handle your issue</p>
-              </div>
-            </div>
-            <div className="step">
-              <div className="step-icon">🛠️</div>
-              <div className="step-content">
-                <h4>Resolution</h4>
-                <p>The relevant department will work to resolve your issue and update you on progress</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="contact-info">
-          <h3>Need Immediate Assistance?</h3>
-          <div className="emergency-contacts">
-            <div className="contact">
-              <strong>Emergency Services:</strong> 999
-            </div>
-            <div className="contact">
-              <strong>City Hall:</strong> +8801540-194651
-            </div>
-            <div className="contact">
-              <strong>Email:</strong> arafat@gmail.com
-            </div>
-          </div>
-        </div>
-
+      </div>
+      <div className="hero-section">
       </div>
     </div>
+    
   );
 }
 

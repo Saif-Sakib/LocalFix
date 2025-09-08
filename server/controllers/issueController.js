@@ -67,7 +67,8 @@ async function createIssue(req, res) {
 
     res.status(201).json({ 
       message: "Issue submitted successfully!",
-      rowsAffected: issueResult.rowsAffected
+      rowsAffected: issueResult.rowsAffected,
+      fileUrl: image_url || null
     });
 
   } catch (err) {

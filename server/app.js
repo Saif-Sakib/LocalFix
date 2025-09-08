@@ -43,6 +43,7 @@ app.get('/', (req, res) => {
 });
 
 // API Routes
+app.use('/api/uploads', require('./routes/uploadRoutes'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issueRoutes'));
 
