@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from '../../context/AuthContext';
 import axios from "axios";
-import '../../styles/common/IssueList.css'; // Make sure this path matches your CSS file
+import '../../styles/common/IssueList.css';
 
 function IssueList() {
 	const [issues, setIssues] = useState([]);
@@ -12,7 +12,6 @@ function IssueList() {
 	const user_type = user?.user_type;
 
 	useEffect(() => {
-		//code to get the user type
 		async function fetchIssues() {
 			try {
 				const res = await axios.get("http://localhost:5000/api/issues");
@@ -27,31 +26,88 @@ function IssueList() {
 	}, []);
 
 	const handleViewDetails = (issueId) => {
-		// Add your view details logic here
 		console.log(`View details for issue ${issueId}`);
 	};
 
+	const handleApply = async (issueId) => {
+		try {
+			// API call to apply for the issue
+			const response = await axios.post(`http://localhost:5000/api/worker/apply/${issueId}`, {
+				worker_id: user.user_id
+			});
+			
+			if (response.data.success) {
+				// Update local state to reflect the application
+				setIssues(prevIssues => 
+					prevIssues.map(issue => 
+						issue.ID === issueId 
+							? { ...issue, STATUS: 'applied' }
+							: issue
+					)
+				);
+				alert('Application submitted successfully!');
+			}
+		} catch (error) {
+			console.error('Error applying for issue:', error);
+			alert('Error applying for issue. Please try again.');
+		}
+	};
+
 	const handlePayment = (issueId) => {
-		// Add your payment logic here
 		console.log(`Initiate payment for issue ${issueId}`);
 	};
 
 	const handlePaymentStatus = (issueId) => {
-		// Add your payment status logic here
 		console.log(`Check payment status for issue ${issueId}`);
 	};
 
 	const getPriorityClass = (priority) => {
 		switch (priority?.toLowerCase()) {
+			case 'urgent':
+				return 'priority-urgent';
 			case 'high':
 				return 'priority-high';
 			case 'medium':
 				return 'priority-medium';
 			case 'low':
 				return 'priority-low';
-			case 'urgent':
-				return 'priority-urgent';
+			default:
+				return 'priority-medium';
 		}
+	};
+
+	const getStatusClass = (status) => {
+		switch (status?.toLowerCase()) {
+			case 'submitted':
+				return 'status-submitted';
+			case 'applied':
+				return 'status-applied';
+			case 'assigned':
+				return 'status-assigned';
+			case 'in_progress':
+				return 'status-in-progress';
+			case 'under_review':
+				return 'status-under-review';
+			case 'resolved':
+				return 'status-resolved';
+			case 'closed':
+				return 'status-closed';
+			default:
+				return 'status-default';
+		}
+	};
+
+	const getStatusDisplayText = (status) => {
+		const statusMap = {
+			'submitted': 'Open for Applications',
+			'applied': 'Applications Received',
+			'assigned': 'Worker Assigned',
+			'in_progress': 'Work in Progress',
+			'under_review': 'Under Review',
+			'resolved': 'Completed',
+			'closed': 'Closed'
+		};
+		return statusMap[status?.toLowerCase()] || status;
 	};
 
 	const truncateText = (text, maxLength = 40) => {
@@ -75,6 +131,18 @@ function IssueList() {
 			return a.STATUS.localeCompare(b.STATUS);
 		}
 		return 0;
+	};
+
+	const canWorkerApply = (issue) => {
+		return user_type === 'worker' && 
+			   (issue.STATUS === 'submitted' || issue.STATUS === 'applied') &&
+			   issue.ASSIGNED_WORKER_ID !== user.user_id;
+	};
+
+	const hasWorkerApplied = (issue) => {
+		// This would typically come from a separate applications table
+		// For now, we'll assume if status is 'applied' and we can see it, someone has applied
+		return issue.STATUS === 'applied';
 	};
 
 	if (loading) {
@@ -108,11 +176,13 @@ function IssueList() {
 					className="filter-dropdown"
 				>
 					<option value="all">All Issues</option>
-					<option value="submitted">Recent Issues</option>
-					<option value="assigned">Assigned Issues</option>
-					<option value="in_progress">Pending Issues</option>
-					<option value="resolved">Solved Issues</option>
-					<option value="closed">Paid</option>
+					<option value="submitted">Open for Applications</option>
+					<option value="applied">Applications Received</option>
+					<option value="assigned">Worker Assigned</option>
+					<option value="in_progress">Work in Progress</option>
+					<option value="under_review">Under Review</option>
+					<option value="resolved">Completed</option>
+					<option value="closed">Closed</option>
 				</select>
 				<select
 					name="sort_by"
@@ -132,34 +202,34 @@ function IssueList() {
 				<div className="issues-grid">
 					{issues
 						.filter(issue => filter_issue === 'all' || filter_issue === issue.STATUS)
-						.slice() // copy array for sort
+						.slice()
 						.sort((a, b) => handle_sort_by(a, b))
 						.map(issue => (
 							<div className="issue-card" key={issue.ID}>
-								<div className={`card-header ${issue.STATUS}`}>
+								<div className={`card-header ${getStatusClass(issue.STATUS)}`}>
 									<h3 className="card-title">{issue.TITLE}</h3>
 									<div className="card-badges">
 										<span className="job-id">#{issue.ID}</span>
 										<span className={`priority ${getPriorityClass(issue.PRIORITY)}`}>
-											{issue.PRIORITY.toUpperCase()}
+											{issue.PRIORITY?.toUpperCase() || 'MEDIUM'}
 										</span>
 									</div>
 								</div>
 
 								<div className="card-body">
-										<div className="info-row">
-											<div className="info-item">
-												<span className="label">Location</span>
-												<span className="value">{issue.LOCATION}</span>
-											</div>
+									<div className="info-row">
+										<div className="info-item">
+											<span className="label">Location</span>
+											<span className="value">{issue.LOCATION}</span>
 										</div>
+									</div>
 
-										<div className="info-row">
-											<div className="info-item">
-												<span className="label">Category</span>
-												<span className="value">{issue.CATEGORY}</span>
-											</div>
+									<div className="info-row">
+										<div className="info-item">
+											<span className="label">Category</span>
+											<span className="value">{issue.CATEGORY}</span>
 										</div>
+									</div>
 
 									{issue.DESCRIPTION && (
 										<div className="info-row">
@@ -173,12 +243,26 @@ function IssueList() {
 									<div className="info-row">
 										<div className="info-item">
 											<span className="label">Status</span>
-											<span className="value">{issue.STATUS.toUpperCase()}</span>
+											<span className={`value status-text ${getStatusClass(issue.STATUS)}`}>
+												{getStatusDisplayText(issue.STATUS)}
+											</span>
 										</div>
 									</div>
 
+									{/* Show assigned worker info if available */}
+									{issue.ASSIGNED_WORKER_ID && issue.ASSIGNED_WORKER_NAME && (
+										<div className="info-row">
+											<div className="info-item">
+												<span className="label">Assigned Worker</span>
+												<span className="value">{issue.ASSIGNED_WORKER_NAME}</span>
+											</div>
+										</div>
+									)}
+
 									<div className="created-date">
-										<span className="date-label">{issue.STATUS=='resolved' || issue.STATUS=='closed' ? 'Resolved' : 'Posted'}</span>
+										<span className="date-label">
+											{['resolved', 'closed'].includes(issue.STATUS) ? 'Completed' : 'Posted'}
+										</span>
 										<span className="date-value">
 											{new Date(issue.CREATED_AT).toLocaleDateString('en-US', {
 												year: 'numeric',
@@ -199,16 +283,47 @@ function IssueList() {
 										View Details
 									</button>
 									
-									{user_type === 'worker' && issue.STATUS === 'submitted' && 
+									{/* Worker Apply Button Logic */}
+									{canWorkerApply(issue) && !hasWorkerApplied(issue) && (
 										<button
-											className="btn-details"
-											
+											className="btn-apply"
+											onClick={() => handleApply(issue.ID)}
 										>
-											Apply
+											Apply Now
 										</button>
-									}
-								</div>
+									)}
+									
+									{canWorkerApply(issue) && hasWorkerApplied(issue) && (
+										<button
+											className="btn-applied"
+											disabled
+										>
+											Applied
+										</button>
+									)}
 
+									{/* Citizen Payment Buttons */}
+									{user_type === 'citizen' && issue.CITIZEN_ID === user.user_id && (
+										<>
+											{issue.STATUS === 'resolved' && (
+												<button
+													className="btn-payment"
+													onClick={() => handlePayment(issue.ID)}
+												>
+													Make Payment
+												</button>
+											)}
+											{issue.STATUS === 'closed' && (
+												<button
+													className="btn-payment-status"
+													onClick={() => handlePaymentStatus(issue.ID)}
+												>
+													Payment Status
+												</button>
+											)}
+										</>
+									)}
+								</div>
 							</div>
 						))}
 				</div>

@@ -56,25 +56,6 @@ router.post('/issue', issueUpload.single('image'), (req, res) => {
     });
 });
 
-
-/**
- * Route for job images
- */
-const jobUpload = multer({ storage: makeStorage('job_img') });
-router.post('/job', jobUpload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res
-            .status(400)
-            .json({ success: false, message: 'No file uploaded' });
-    }
-
-    res.json({
-        success: true,
-        message: 'Job image uploaded successfully',
-        fileUrl: buildFileUrl(req, 'job_img', req.file.filename),
-    });
-});
-
 /**
  * Route for profile pictures
  */
