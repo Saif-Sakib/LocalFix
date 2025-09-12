@@ -1,19 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Profile from "../common/profile";
 import PostIssue from "./postIssue";
 import MyJobs from "./myJobs";
 import IssueList from "../common/IssueList";
+import CitizenHome from "./home";
 import "../../styles/common/dashboard.css";
 
 function CitizenDashboard() {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [left_hide, set_left_hide] = useState(false);
     const [currentTab, setCurrentTab] = useState("Home");
     const [isMobile, setIsMobile] = useState(false);
+
+    // Handle URL parameters for tab navigation
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const tab = urlParams.get('tab');
+        
+        const tabMapping = {
+            'profile': 'Profile',
+            'post-issue': 'Post Issue',
+            'view-issues': 'View Issues',
+            'my-jobs': 'My Jobs',
+            'home': 'Home'
+        };
+
+        if (tab && tabMapping[tab]) {
+            setCurrentTab(tabMapping[tab]);
+        } else {
+            // If no tab parameter or invalid tab, default to Home and update URL
+            setCurrentTab('Home');
+            navigate('/citizen?tab=home', { replace: true });
+        }
+    }, [location.search, navigate]);
 
     // Check if device is mobile and set initial state
     useEffect(() => {
@@ -41,6 +65,18 @@ function CitizenDashboard() {
     const handleTabChange = (tab) => {
         setCurrentTab(tab);
 
+        // Update URL to reflect the current tab
+        const tabUrlMapping = {
+            'Profile': 'profile',
+            'Post Issue': 'post-issue',
+            'View Issues': 'view-issues',
+            'My Jobs': 'my-jobs',
+            'Home': 'home'
+        };
+
+        const urlTab = tabUrlMapping[tab] || 'home';
+        navigate(`/citizen?tab=${urlTab}`, { replace: true });
+
         // Auto-hide panel on mobile after clicking any button
         if (isMobile) {
             set_left_hide(true);
@@ -54,6 +90,8 @@ function CitizenDashboard() {
 
     const RenderContent = () => {
         switch (currentTab) {
+            case "Home":
+                return <CitizenHome />;
             case "Profile":
                 return <Profile />;
             case "Post Issue":
@@ -62,31 +100,6 @@ function CitizenDashboard() {
                 return <IssueList />;
             case "My Jobs":
                 return <MyJobs />;
-            default:
-                return (
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        height: '60vh',
-                        flexDirection: 'column',
-                        gap: '20px'
-                    }}>
-                        <h2 style={{ 
-                            color: '#64748b', 
-                            fontSize: '28px', 
-                            fontWeight: '600' 
-                        }}>
-                            Welcome to Citizen Dashboard
-                        </h2>
-                        <p style={{ 
-                            color: '#94a3b8', 
-                            fontSize: '16px' 
-                        }}>
-                            Select an option from the sidebar to get started.
-                        </p>
-                    </div>
-                );
         }
     };
 

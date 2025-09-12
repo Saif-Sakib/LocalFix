@@ -48,6 +48,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issueRoutes'));
 app.use('/api/worker', require('./routes/workerRoutes'));
 app.use('/api/proofs', require('./routes/jobProofRoutes'));
+app.use('/api/config', require('./routes/configRoutes'));
 
 // Test route
 app.get('/api/test', (req, res) => {

@@ -1,19 +1,43 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import Home from "./home";
-import ReviewProblems from "./review_problem";
-import IssueList from "../common/IssueList";
+import { useNavigate, useLocation } from "react-router-dom";
+import AdminHome from "./home";
 import Profile from "../common/profile";
+import IssueList from "../common/IssueList";
+import Application from "./application";
+import ReviewProblems from "./review_problem";
 import "../../styles/common/dashboard.css";
 
 function AdminDashboard() {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     
     const [left_hide, set_left_hide] = useState(false);
     const [currentTab, setCurrentTab] = useState("Home");
     const [isMobile, setIsMobile] = useState(false);
+
+    // Handle URL parameters for tab navigation
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const tab = urlParams.get('tab');
+        
+        const tabMapping = {
+            'profile': 'Profile',
+            'issues': 'Issues',
+            'review-problems': 'Review Problems',
+            'applications': 'Application',
+            'home': 'Home'
+        };
+
+        if (tab && tabMapping[tab]) {
+            setCurrentTab(tabMapping[tab]);
+        } else {
+            // If no tab parameter or invalid tab, default to Home and update URL
+            setCurrentTab('Home');
+            navigate('/admin?tab=home', { replace: true });
+        }
+    }, [location.search, navigate]);
 
     // Check if device is mobile and set initial state
     useEffect(() => {
@@ -41,6 +65,18 @@ function AdminDashboard() {
     const handleTabChange = (tab) => {
         setCurrentTab(tab);
         
+        // Update URL to reflect the current tab
+        const tabUrlMapping = {
+            'Profile': 'profile',
+            'Issues': 'issues',
+            'Review Problems': 'review-problems',
+            'Application': 'applications',
+            'Home': 'home'
+        };
+
+        const urlTab = tabUrlMapping[tab] || 'home';
+        navigate(`/admin?tab=${urlTab}`, { replace: true });
+        
         // Auto-hide panel on mobile after clicking any button
         if (isMobile) {
             set_left_hide(true);
@@ -55,15 +91,17 @@ function AdminDashboard() {
     const RenderContent = () => {
         switch (currentTab) {
             case "Home":
-                return <Home />;
+                return <AdminHome />;
             case "Profile":
                 return <Profile />;
             case "Issues":
                 return <IssueList />;
+            case "Application":
+                return <Application />;
             case "Review Problems":
                 return <ReviewProblems />;
             default:
-                return null;
+                return <AdminHome />;
         }
     };
 
@@ -111,11 +149,19 @@ function AdminDashboard() {
                         </button>
 
                         <button
+                            onClick={() => handleTabChange("Application")}
+                            style={currentTab === "Application" ? { backgroundColor: "#bcd6fbff" } : {}}
+                        >
+                            <i className="bx bx-clipboard"></i>
+                            <span>Applications</span>
+                        </button>
+
+                        <button
                             onClick={() => handleTabChange("Review Problems")}
                             style={currentTab === "Review Problems" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
-                            <i className="bx bx-briefcase"></i>
-                            <span>Review Problems</span>
+                            <i className="bx bx-check-circle"></i>
+                            <span>Review Works</span>
                         </button>
                     </div>
                 </div>

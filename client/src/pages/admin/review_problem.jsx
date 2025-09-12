@@ -1,6 +1,9 @@
+import React, { useState, useEffect } from 'react';
+import '../../styles/admin/review_problem.css';
+
 function ReviewProblems() {
     return (
-        <h1>Problems(Assigned, Applications, Submitted Proof)</h1>
+        <h1>Review Problems</h1>
     );
 }
 

@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
 
-/* --- THEME & COLOR VARIABLES --- */
 :root {
     --bg-color: #f0f2f5;
     --container-bg: #fff;
@@ -11,7 +10,6 @@
     --input-bg: #f8f9fa;
 }
 
-/* --- BASE & SCROLLBAR STYLES --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     display: flex;
@@ -26,11 +24,10 @@ body {
 ::-webkit-scrollbar-thumb { background: #c5c5c5; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-/* --- MAIN CONTAINER --- */
-/* minimize expensive transitions on layout while resizing */
 .container {
     position: relative;
-    width: 850px;
+    width: 85%;
+    max-width: 900px;
     height: 650px;
     background: var(--container-bg);
     border-radius: 30px;
@@ -47,8 +44,6 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* --- FORM BOXES (desktop behavior) --- */
-/* Desktop: two halves, absolutely positioned and sliding via transform */
 .form-box {
     position: absolute;
     top: 0;
@@ -58,11 +53,10 @@ h1 {
     align-items: center;
     justify-content: center;
     padding: 0 40px;
-    /* GPU-friendly properties only */
     transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.45s ease;
     overflow-y: auto;
     will-change: transform, opacity;
-    pointer-events: none; /* disabled by default; enabled on active */
+    pointer-events: none;
     opacity: 0;
     z-index: 1;
 }
@@ -73,7 +67,6 @@ h1 {
 }
 .form-group { margin-bottom: 20px; }
 
-/* Login shown by default on desktop */
 .form-box.login {
     left: 0;
     transform: translateX(0);
@@ -82,16 +75,14 @@ h1 {
     z-index: 2;
 }
 
-/* Register starts off-screen to the right (visible when activated) */
 .form-box.register {
     right: 0;
-    transform: translateX(100%); /* move fully off its own width to the right */
+    transform: translateX(100%);
     opacity: 0;
     pointer-events: none;
     z-index: 1;
 }
 
-/* When the container has signup-active, swap them with transforms */
 .container.signup-active .form-box.login {
     transform: translateX(-100%); /* move login left and out */
     opacity: 0;
@@ -99,13 +90,12 @@ h1 {
     z-index: 1;
 }
 .container.signup-active .form-box.register {
-    transform: translateX(0); /* bring register into right half */
+    transform: translateX(0);
     opacity: 1;
     pointer-events: auto;
     z-index: 2;
 }
 
-/* --- INPUTS AND FIELDS --- */
 .input-box { position: relative; }
 .input-box input, .dropdown select {
     width: 100%;
@@ -134,7 +124,6 @@ h1 {
     cursor: pointer;
 }
 
-/* --- VALIDATION DISPLAY BOX --- */
 .validation-box {
     background-color: var(--input-bg);
     border-radius: 10px;
@@ -151,7 +140,6 @@ h1 {
 .validation-box.hide, .validation-box.hidden { display: none; }
 .validation-box.show, .validation-box.visible { display: block; }
 
-/* --- BUTTONS & LINKS --- */
 .button {
     width: 100%; padding: 14px 20px; margin-top: 10px; border: none;
     border-radius: 12px; background: var(--accent-gradient); color: white;
@@ -169,7 +157,6 @@ h1 {
 .forgot-link { color: var(--accent-color); text-decoration: none; font-weight: 500; }
 .forgot-link:hover { text-decoration: underline; }
 
-/* --- TOGGLE & OVERLAY --- */
 .toggle-container {
     position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
     overflow: hidden; transition: transform 0.6s cubic-bezier(.2,.8,.2,1); z-index: 10;
@@ -193,17 +180,11 @@ h1 {
 }
 .toggle-button:hover { background: white; color: var(--accent-color); }
 
-/* overlay movement on active */
 .container.signup-active .toggle-container { transform: translateX(-100%); }
 .container.signup-active .toggle-overlay { transform: translateX(50%); }
 .container.signup-active .toggle-left { transform: translateX(0); }
 .container.signup-active .toggle-right { transform: translateX(200%); }
 
-/* --- MOBILE & RESPONSIVE (<= 900px) --- */
-/*
-  On mobile we stop using absolute halves and instead stack forms vertically.
-  We avoid display: none toggles during transition; use max-height + opacity for smoothness.
-*/
 .mobile-toggle {
     display: none; margin-top: 20px; font-size: 14px; color: #666; text-align: center;
 }
@@ -221,10 +202,8 @@ h1 {
         box-shadow: none;
     }
 
-    /* hide overlay on small screens */
     .toggle-container { display: none; }
 
-    /* make forms flow in document (no overlapping absolute positioning) */
     .form-box {
         position: relative;
         width: 100%;
@@ -239,11 +218,10 @@ h1 {
         z-index: 1;
     }
 
-    /* We'll collapse the inactive form using max-height */
     .form-box.register,
     .form-box.login {
         overflow: hidden;
-        max-height: 0; /* collapsed by default for register */
+        max-height: 0;
         opacity: 0;
         padding-top: 0;
         padding-bottom: 0;
@@ -251,7 +229,6 @@ h1 {
         margin-bottom: 0;
     }
 
-    /* Show the login by default on small screens */
     .form-box.login {
         max-height: 2000px;
         opacity: 1;
@@ -260,7 +237,6 @@ h1 {
         margin-bottom: 20px;
     }
 
-    /* When signup is active, swap the collapsed states */
     .container.signup-active .form-box.login {
         max-height: 0;
         opacity: 0;
@@ -269,7 +245,7 @@ h1 {
         margin-bottom: 0;
     }
     .container.signup-active .form-box.register {
-        max-height: 2000px; /* large enough to show the full form */
+        max-height: 2000px;
         opacity: 1;
         padding-top: 20px;
         padding-bottom: 20px;
@@ -279,7 +255,6 @@ h1 {
     .mobile-toggle { display: block; }
 }
 
-/* extra small screens: make container take full height */
 @media (max-width: 600px) {
     .container { min-height: 100vh; }
     .form-box form { padding: 10px 0; }
