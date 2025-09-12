@@ -48,55 +48,29 @@ async function closeDatabase() {
     }
 }
 
-// Universal query function for SELECT operations
 async function executeQuery(sql, binds = [], options = {}) {
     let connection;
     try {
         connection = await oracledb.getConnection();
-        
-        const defaultOptions = {
-            outFormat: oracledb.OUT_FORMAT_OBJECT, // Return results as objects instead of arrays
-            autoCommit: false
-        };
-        
-        const executeOptions = { ...defaultOptions, ...options };
-        const result = await connection.execute(sql, binds, executeOptions);
-        
-        return {
-            success: true,
-            rows: result.rows,
-            rowsAffected: result.rowsAffected,
-            metaData: result.metaData,
-            outBinds: result.outBinds
-        };
-    } catch (error) {
-        console.error('Database query error:', error);
-        return {
-            success: false,
-            error: error.message,
-            code: error.errorNum
-        };
-    } finally {
-        if (connection) {
-            await connection.close();
-        }
-    }
-}
 
-// Universal function for INSERT, UPDATE, DELETE operations (with transaction support)
-async function executeTransaction(sql, binds = [], options = {}) {
-    let connection;
-    try {
-        connection = await oracledb.getConnection();
-        
         const defaultOptions = {
             outFormat: oracledb.OUT_FORMAT_OBJECT,
-            autoCommit: true // Auto-commit for single operations
+            autoCommit: false
         };
-        
+
+        // Merge user options
         const executeOptions = { ...defaultOptions, ...options };
+
+        // Detect query type
+        const queryType = sql.trim().split(/\s+/)[0].toUpperCase();
+
+        // For DML statements (INSERT, UPDATE, DELETE), force autoCommit = true
+        if (["INSERT", "UPDATE", "DELETE"].includes(queryType)) {
+            executeOptions.autoCommit = true;
+        }
+
         const result = await connection.execute(sql, binds, executeOptions);
-        
+
         return {
             success: true,
             rows: result.rows,
@@ -105,7 +79,7 @@ async function executeTransaction(sql, binds = [], options = {}) {
             outBinds: result.outBinds
         };
     } catch (error) {
-        console.error('Database transaction error:', error);
+        console.error("Database query error:", error);
         return {
             success: false,
             error: error.message,
@@ -193,8 +167,7 @@ function sanitizeBindsForLogging(binds) {
 module.exports = {
     initializeDatabase,
     closeDatabase,
-    executeQuery,        // For SELECT operations
-    executeTransaction,  // For INSERT, UPDATE, DELETE operations
+    executeQuery,        // For all operations
     executeMultipleQueries, // For complex transactions
     getConnection,       // For custom operations that need manual connection handling
     dbConfig

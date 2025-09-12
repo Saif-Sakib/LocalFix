@@ -1,124 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Submit_proof from './submitProof';
 import '../../../styles/worker/myApplications.css';
+import axios from "axios";
 
 function MyApplications() {
     const [filter, setFilter] = useState('all');
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [is_submit_open, set_is_submit_open] = useState(false);
     const [selectedIssueId, setSelectedIssueId] = useState(null);
 
-    // Sample data - replace with actual API call
-    useEffect(() => {
-        // This should be replaced with actual API call to fetch worker's applications
-        const fetchApplications = async () => {
-            try {
-                // Mock data for now - replace with: const response = await fetch('/api/worker/applications');
-                const mockApplications = [
-                    {
-                        id: 1,
-                        title: "Leaky faucet",
-                        location: "Kitchen",
-                        category: "Plumbing",
-                        priority: "medium",
-                        status: "assigned", // Worker can submit proof
-                        appliedDate: "2024-06-01",
-                        assignedDate: "2024-06-02",
-                        myProposal: "Replace faucet washer and check for leaks.",
-                        adminNote: "Approved for assignment. Please start work immediately.",
-                        description: "The kitchen faucet is leaking continuously.",
-                        citizenName: "John Doe",
-                        citizenContact: "+8801712345678"
-                    },
-                    {
-                        id: 2,
-                        title: "Broken window",
-                        location: "Living Room",
-                        category: "Carpentry",
-                        priority: "high",
-                        status: "applied", // Waiting for admin assignment
-                        appliedDate: "2024-06-02",
-                        myProposal: "Replace broken glass and reinforce frame.",
-                        adminNote: null,
-                        description: "Window in the living room is completely broken.",
-                        citizenName: "Jane Smith",
-                        citizenContact: "+8801812345679"
-                    },
-                    {
-                        id: 3,
-                        title: "Heating not working",
-                        location: "Whole House",
-                        category: "HVAC",
-                        priority: "urgent",
-                        status: "in_progress", // Can submit proof
-                        appliedDate: "2024-06-03",
-                        assignedDate: "2024-06-03",
-                        startedDate: "2024-06-04",
-                        myProposal: "Inspect boiler and repair heating system.",
-                        adminNote: "Critical issue. Start immediately.",
-                        description: "Central heating system is completely down.",
-                        citizenName: "Bob Johnson",
-                        citizenContact: "+8801912345680"
-                    },
-                    {
-                        id: 4,
-                        title: "Paint peeling",
-                        location: "Bathroom",
-                        category: "Painting",
-                        priority: "low",
-                        status: "under_review", // Proof submitted, waiting for verification
-                        appliedDate: "2024-06-04",
-                        assignedDate: "2024-06-05",
-                        startedDate: "2024-06-06",
-                        proofSubmittedDate: "2024-06-07",
-                        myProposal: "Scrape old paint and repaint walls.",
-                        adminNote: "Approved. Quality work expected.",
-                        description: "Paint is peeling off the bathroom walls.",
-                        citizenName: "Alice Brown",
-                        citizenContact: "+8801612345677"
-                    },
-                    {
-                        id: 5,
-                        title: "Electrical outlet not working",
-                        location: "Bedroom",
-                        category: "Electrical",
-                        priority: "medium",
-                        status: "resolved", // Work completed and verified
-                        appliedDate: "2024-05-28",
-                        assignedDate: "2024-05-29",
-                        startedDate: "2024-05-30",
-                        proofSubmittedDate: "2024-05-31",
-                        resolvedDate: "2024-06-01",
-                        myProposal: "Replace faulty outlet and check wiring.",
-                        adminNote: "Excellent work. Payment processed.",
-                        description: "Bedroom electrical outlet is completely dead.",
-                        citizenName: "Mike Wilson",
-                        citizenContact: "+8801512345676"
-                    }
-                ];
-                
-                setApplications(mockApplications);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching applications:', error);
-                setLoading(false);
-            }
-        };
-
-        fetchApplications();
+    const fetchApplications = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await axios.get('http://localhost:5000/api/worker/applications');
+            setApplications(response.data.applications || []);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to fetch applications.');
+            console.error('Error fetching applications:', err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    // Calculate counts dynamically
-    const all_count = applications.length;
-    const applied_count = applications.filter(a => a.status === 'applied').length;
-    const assigned_count = applications.filter(a => a.status === 'assigned').length;
-    const in_progress_count = applications.filter(a => a.status === 'in_progress').length;
-    const under_review_count = applications.filter(a => a.status === 'under_review').length;
-    const resolved_count = applications.filter(a => a.status === 'resolved').length;
+    useEffect(() => {
+        fetchApplications();
+    }, [fetchApplications]);
 
-    // Filter applications based on selected filter
-    const filteredApplications = filter === 'all' ? applications : applications.filter(a => a.status === filter);
+    const handleStartWork = async (issueId) => {
+        try {
+            await axios.put('http://localhost:5000/api/worker/start-work', { issueId });
+            // Refresh data to show the change
+            fetchApplications();
+        } catch (error) {
+            console.error('Error starting work:', error);
+            alert(error.response?.data?.message || 'Could not start work.');
+        }
+    };
 
     const handleOpenModal = (issueId) => {
         setSelectedIssueId(issueId);
@@ -130,65 +50,35 @@ function MyApplications() {
         setSelectedIssueId(null);
     };
 
-    const handleSubmitProof = async (proofData) => {
-        try {
-            // API call to submit proof
-            // const response = await fetch(`/api/worker/submit-proof/${selectedIssueId}`, {...});
-            
-            // Update local state
-            setApplications(prev => prev.map(app => 
-                app.id === selectedIssueId 
-                    ? { ...app, status: 'under_review', proofSubmittedDate: new Date().toISOString().split('T')[0] }
-                    : app
-            ));
-            
-            handleCloseModal();
-        } catch (error) {
-            console.error('Error submitting proof:', error);
-        }
+    const handleSubmitProofSuccess = () => {
+        handleCloseModal();
+        // Refresh the list to show the new 'under_review' status
+        fetchApplications();
     };
 
-    const handleStartWork = async (issueId) => {
-        try {
-            // API call to mark work as started
-            // const response = await fetch(`/api/worker/start-work/${issueId}`, {...});
-            
-            setApplications(prev => prev.map(app => 
-                app.id === issueId 
-                    ? { ...app, status: 'in_progress', startedDate: new Date().toISOString().split('T')[0] }
-                    : app
-            ));
-        } catch (error) {
-            console.error('Error starting work:', error);
-        }
-    };
+    // Calculate counts dynamically
+    const getCount = (status) => applications.filter(a => a.status === status).length;
+    
+    // Filter applications based on selected filter
+    const filteredApplications = filter === 'all' ? applications : applications.filter(a => a.status === filter);
 
     if (loading) {
         return <div className="loading">Loading your applications...</div>;
     }
+    
+    if (error) {
+        return <div className="error-message">Error: {error}</div>
+    }
 
     return (
         <div className="my-applications-container">
-            
             <div className="filter-buttons">
-                <button className={`filter-button ${filter === 'all' ? 'selected' : ''}`} onClick={() => setFilter('all')}>
-                    All ({all_count})
-                </button>
-                <button className={`filter-button ${filter === 'applied' ? 'selected' : ''}`} onClick={() => setFilter('applied')}>
-                    Applied ({applied_count})
-                </button>
-                <button className={`filter-button ${filter === 'assigned' ? 'selected' : ''}`} onClick={() => setFilter('assigned')}>
-                    Assigned ({assigned_count})
-                </button>
-                <button className={`filter-button ${filter === 'in_progress' ? 'selected' : ''}`} onClick={() => setFilter('in_progress')}>
-                    In Progress ({in_progress_count})
-                </button>
-                <button className={`filter-button ${filter === 'under_review' ? 'selected' : ''}`} onClick={() => setFilter('under_review')}>
-                    Under Review ({under_review_count})
-                </button>
-                <button className={`filter-button ${filter === 'resolved' ? 'selected' : ''}`} onClick={() => setFilter('resolved')}>
-                    Resolved ({resolved_count})
-                </button>
+                <button className={`filter-button ${filter === 'all' ? 'selected' : ''}`} onClick={() => setFilter('all')}>All ({applications.length})</button>
+                <button className={`filter-button ${filter === 'applied' ? 'selected' : ''}`} onClick={() => setFilter('applied')}>Applied ({getCount('applied')})</button>
+                <button className={`filter-button ${filter === 'assigned' ? 'selected' : ''}`} onClick={() => setFilter('assigned')}>Assigned ({getCount('assigned')})</button>
+                <button className={`filter-button ${filter === 'in_progress' ? 'selected' : ''}`} onClick={() => setFilter('in_progress')}>In Progress ({getCount('in_progress')})</button>
+                <button className={`filter-button ${filter === 'under_review' ? 'selected' : ''}`} onClick={() => setFilter('under_review')}>Under Review ({getCount('under_review')})</button>
+                <button className={`filter-button ${filter === 'resolved' ? 'selected' : ''}`} onClick={() => setFilter('resolved')}>Resolved ({getCount('resolved')})</button>
             </div>
 
             <div className="application-list">
@@ -202,35 +92,19 @@ function MyApplications() {
                             <div className="application-content">
                                 <div className="application-header">
                                     <h2>{app.title}</h2>
-                                    
                                 </div>
                                 
                                 <div className="basic-info-grid">
-                                    <div className="info-item">
-                                        <strong>Location:</strong> {app.location}
-                                    </div>
-                                    <div className="info-item">
-                                        <strong>Category:</strong> {app.category}
-                                    </div>
+                                    <div className="info-item"><strong>Location:</strong> {app.location}</div>
+                                    <div className="info-item"><strong>Category:</strong> {app.category}</div>
                                     <div className="info-item">
                                         <strong>Priority:</strong> 
                                         <span className={`priority-badge priority-${app.priority}`}>
-                                            {app.priority.charAt(0).toUpperCase() + app.priority.slice(1)}
+                                            {app.priority}
                                         </span>
                                     </div>
-                                    <div className="info-item">
-                                        <strong>Applied:</strong> {app.appliedDate}
-                                    </div>
-                                    {app.assignedDate && (
-                                        <div className="info-item">
-                                            <strong>Assigned:</strong> {app.assignedDate}
-                                        </div>
-                                    )}
-                                    {app.startedDate && (
-                                        <div className="info-item">
-                                            <strong>Started:</strong> {app.startedDate}
-                                        </div>
-                                    )}
+                                    {app.appliedDate && <div className="info-item"><strong>Applied:</strong> {app.appliedDate}</div>}
+                                    {app.assignedDate && <div className="info-item"><strong>Assigned:</strong> {app.assignedDate}</div>}
                                 </div>
 
                                 <div className="description-section">
@@ -241,9 +115,7 @@ function MyApplications() {
                                 {app.citizenName && (
                                     <div className="citizen-info">
                                         <strong>Citizen:</strong> {app.citizenName}
-                                        {app.citizenContact && (
-                                            <span className="citizen-contact"> | {app.citizenContact}</span>
-                                        )}
+                                        {app.citizenContact && <span className="citizen-contact"> | {app.citizenContact}</span>}
                                     </div>
                                 )}
 
@@ -254,62 +126,33 @@ function MyApplications() {
                                     </div>
                                 )}
 
-                                {app.adminNote && (
+                                {app.adminFeedback && (
                                     <div className="proposal admin-note">
-                                        <strong>Admin Note:</strong>
-                                        <p>{app.adminNote}</p>
+                                        <strong>Admin Feedback:</strong>
+                                        <p>{app.adminFeedback}</p>
                                     </div>
                                 )}
                             </div>
 
                             <div className="action-buttons">
+                                {/* Show Start Work button only for 'assigned' status */}
                                 {app.status === 'assigned' && (
-                                    <>
-                                        <button 
-                                            className="action-btn start-work-btn"
-                                            onClick={() => handleStartWork(app.id)}
-                                        >
-                                            <i className='bx bx-play-circle'></i>
-                                            Start Work
-                                        </button>
-                                    </>
+                                    <button className="action-btn start-work-btn" onClick={() => handleStartWork(app.id)}>
+                                        <i className='bx bx-play-circle'></i> Start Work
+                                    </button>
                                 )}
                                 
+                                {/* Show Submit Proof button only for 'in_progress' status */}
                                 {app.status === 'in_progress' && (
-                                    <button 
-                                        className="action-btn submit-proof-btn"
-                                        onClick={() => handleOpenModal(app.id)}
-                                    >
-                                        <i className='bx bx-camera'></i>
-                                        Submit Proof
+                                    <button className="action-btn submit-proof-btn" onClick={() => handleOpenModal(app.id)}>
+                                        <i className='bx bx-camera'></i> Submit Proof
                                     </button>
                                 )}
 
-                                {app.status === 'applied' && (
-                                    <div className="waiting-message">
-                                        <i className='bx bx-time'></i>
-                                        Waiting for assignment
-                                    </div>
-                                )}
-
-                                {app.status === 'under_review' && (
-                                    <div className="review-message">
-                                        <i className='bx bx-check-circle'></i>
-                                        Proof submitted - Under review
-                                    </div>
-                                )}
-
-                                {app.status === 'resolved' && (
-                                    <div className="completed-message">
-                                        <i className='bx bx-badge-check'></i>
-                                        Work completed
-                                    </div>
-                                )}
-
-                                <button className="action-btn details-btn">
-                                    <i className='bx bx-info-circle'></i>
-                                    View Details
-                                </button>
+                                {/* Status messages */}
+                                {app.status === 'applied' && <div className="waiting-message"><i className='bx bx-time'></i> Waiting for assignment</div>}
+                                {app.status === 'under_review' && <div className="review-message"><i className='bx bx-check-circle'></i> Proof submitted - Under review</div>}
+                                {app.status === 'resolved' && <div className="completed-message"><i className='bx bx-badge-check'></i> Work completed & verified</div>}
                             </div>
                         </div>
                     ))
@@ -320,7 +163,7 @@ function MyApplications() {
                 <Submit_proof
                     isOpen={is_submit_open}
                     onClose={handleCloseModal}
-                    onSubmit={handleSubmitProof}
+                    onSubmitSuccess={handleSubmitProofSuccess}
                     issueId={selectedIssueId}
                 />
             )}

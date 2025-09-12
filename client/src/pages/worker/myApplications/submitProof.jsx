@@ -1,57 +1,82 @@
 import React, { useState, useRef } from 'react';
 import '../../../styles/worker/submitProof.css';
+import axios from "axios";
 
-const Submit_proof = ({ isOpen, onClose, onSubmit }) => {
-	const [image, setImage] = useState(null);
+const Submit_proof = ({ isOpen, onClose, onSubmitSuccess, issueId }) => {
+	const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
 	const [dragActive, setDragActive] = useState(false);
 	const [comment, setComment] = useState("");
 	const [fadeOut, setFadeOut] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState(null);
 	const fileInputRef = useRef(null);
 
-	// Handle fade-out before unmount
 	const handleClose = () => {
 		setFadeOut(true);
 		setTimeout(() => {
 			setFadeOut(false);
+            // Reset state on close
+            setImageFile(null);
+            setImagePreview(null);
+            setComment('');
+            setError(null);
 			onClose();
 		}, 300);
 	};
 
-	if (!isOpen && !fadeOut) return null;
-
-	const handleImageChange = (e) => {
-		const file = e.target.files[0];
-		if (file && file.type.startsWith('image/')) {
-			const url = URL.createObjectURL(file);
-			setImage(url);
-			console.log('Image state:', url);
-		}
-	};
-
-	const handleDragOver = (e) => {
-		e.preventDefault();
-		setDragActive(true);
-	};
-	const handleDragLeave = (e) => {
-		e.preventDefault();
-		setDragActive(false);
-	};
+    const handleFileChange = (file) => {
+        if (file && file.type.startsWith('image/')) {
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+    
+	const handleDragOver = (e) => { e.preventDefault(); setDragActive(true); };
+	const handleDragLeave = (e) => { e.preventDefault(); setDragActive(false); };
 	const handleDrop = (e) => {
 		e.preventDefault();
 		setDragActive(false);
-		const file = e.dataTransfer.files[0];
-		if (file && file.type.startsWith('image/')) {
-			const url = URL.createObjectURL(file);
-			setImage(url);
-			console.log('Image state:', url);
-		}
+		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFileChange(e.dataTransfer.files[0]);
+        }
 	};
+    
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        if (!imageFile) {
+            setError("An image proof is required.");
+            return;
+        }
+
+        setSubmitting(true);
+        setError(null);
+
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        formData.append('comment', comment);
+        formData.append('issueId', issueId);
+        
+        try {
+            await axios.post('http://localhost:5000/api/proofs', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            onSubmitSuccess(); // Call success callback from parent
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to submit proof.');
+            console.error("Proof submission error:", err);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+	if (!isOpen && !fadeOut) return null;
 
 	return (
 		<div className="modal-overlay">
 			<div className={`modal-content${fadeOut ? ' fade-out' : ''}`}>
 				<h2>Submit Proof</h2>
-				<form onSubmit={onSubmit}>
+				<form onSubmit={handleFormSubmit}>
 					<label>Upload Image Proof:</label>
 					<div
 						className={`image-drop-zone${dragActive ? ' drag-active' : ''}`}
@@ -59,22 +84,20 @@ const Submit_proof = ({ isOpen, onClose, onSubmit }) => {
 						onDragLeave={handleDragLeave}
 						onDrop={handleDrop}
 						onClick={() => fileInputRef.current.click()}
-						style={{ cursor: 'pointer', marginBottom: '1.5rem' }}
 					>
-						{image ? (
+						{imagePreview ? (
 							<>
-								<img src={image} alt="Preview" style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '8px' }} />
+								<img src={imagePreview} alt="Preview" className="image-preview" />
 								<button
 									type="button"
 									className="remove-image-btn"
-									onClick={e => { e.stopPropagation(); setImage(null); }}
-									style={{ marginTop: '0.75rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.4rem 1.2rem', fontWeight: 500, cursor: 'pointer', fontSize: '0.95rem' }}
+									onClick={e => { e.stopPropagation(); setImageFile(null); setImagePreview(null); }}
 								>
 									Remove Image
 								</button>
 							</>
 						) : (
-							<span style={{ color: '#64748b' }}>
+							<span className="drop-zone-prompt">
 								Drag & drop an image here, or click to select
 							</span>
 						)}
@@ -83,7 +106,7 @@ const Submit_proof = ({ isOpen, onClose, onSubmit }) => {
 							accept="image/*"
 							ref={fileInputRef}
 							style={{ display: 'none' }}
-							onChange={handleImageChange}
+							onChange={(e) => handleFileChange(e.target.files[0])}
 						/>
 					</div>
 
@@ -92,15 +115,18 @@ const Submit_proof = ({ isOpen, onClose, onSubmit }) => {
 						id="comment"
 						name="comment"
 						rows={3}
-						placeholder="Add any comments..."
-						style={{width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '1.5rem', resize: 'vertical', fontSize: '1rem', background: '#f1f5f9'}}
+						placeholder="Add any comments about the completed work..."
 						value={comment}
 						onChange={e => setComment(e.target.value)}
 					/>
 
+                    {error && <p className="error-text">{error}</p>}
+
 					<div className="modal-actions">
-						<button type="submit">Submit</button>
-						<button type="button" onClick={handleClose}>Cancel</button>
+						<button type="submit" disabled={submitting}>
+                            {submitting ? 'Submitting...' : 'Submit Proof'}
+                        </button>
+						<button type="button" onClick={handleClose} disabled={submitting}>Cancel</button>
 					</div>
 				</form>
 			</div>
