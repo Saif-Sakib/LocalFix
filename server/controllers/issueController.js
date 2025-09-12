@@ -1,5 +1,5 @@
 const oracledb = require('oracledb');
-const { executeQuery, getConnection } = require('../config/database'); // Updated imports
+const { executeQuery, getConnection } = require('../config/database');
 
 // Helper to create a serializable error message
 const getErrorMessage = (error) => {
@@ -46,7 +46,7 @@ async function createIssue(req, res) {
         full_address,
         new_location_id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
       },
-      { autoCommit: false } // Do not auto-commit, part of a transaction
+      { autoCommit: false }
     );
 
     const location_id = locationResult.outBinds.new_location_id[0];
@@ -59,7 +59,7 @@ async function createIssue(req, res) {
       `INSERT INTO issues (citizen_id, title, description, category, priority, location_id, image_url) 
        VALUES (:citizen_id, :title, :description, :category, :priority, :location_id, :image_url)`,
       { citizen_id, title, description, category, priority, location_id, image_url: image_url || null },
-      { autoCommit: false } // Also part of the same transaction
+      { autoCommit: false }
     );
 
     // If both inserts are successful, commit the transaction
@@ -86,7 +86,6 @@ async function createIssue(req, res) {
   }
 }
 
-// ... (The rest of the functions in issueController.js remain unchanged)
 async function getAllIssues(req, res) {
   try {
     const result = await executeQuery(
@@ -194,7 +193,7 @@ async function updateIssueStatus(req, res) {
   const { id } = req.params;
   const { status } = req.body;
   try {
-    const validStatuses = ['submitted', 'assigned', 'in_progress', 'resolved', 'closed'];
+    const validStatuses = ['submitted', 'applied', 'assigned', 'in_progress', 'under_review', 'resolved', 'closed'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ 
         message: "Invalid status. Must be one of: " + validStatuses.join(', ')
@@ -365,7 +364,7 @@ async function getIssuesByStatus(req, res) {
         UPDATED_AT: issue.UPDATED_AT ? new Date(issue.UPDATED_AT).toISOString() : null,
         CITIZEN_NAME: issue.CITIZEN_NAME,
         LOCATION: issue.LOCATION_ADDRESS,
-        UPAZILA: issue.UPAZILA, // Corrected from CITY to UPAZILA
+        UPAZILA: issue.UPAZILA,
         DISTRICT: issue.DISTRICT
       }));
       res.json({ issues });
@@ -383,6 +382,242 @@ async function getIssuesByStatus(req, res) {
   }
 }
 
+// NEW: Get user's issue statistics
+async function getUserIssueStats(req, res) {
+  const citizen_id = req.user.user_id;
+  
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        COUNT(*) as total_issues,
+        COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_issues,
+        COUNT(CASE WHEN status IN ('submitted', 'applied', 'under_review') THEN 1 END) as pending_issues,
+        COUNT(CASE WHEN status IN ('assigned', 'in_progress') THEN 1 END) as in_progress_issues
+      FROM issues 
+      WHERE citizen_id = :citizen_id`, 
+      { citizen_id }
+    );
+
+    if (result.success && result.rows.length > 0) {
+      const stats = result.rows[0];
+      res.json({ 
+        success: true,
+        stats: {
+          totalIssues: Number(stats.TOTAL_ISSUES) || 0,
+          resolvedIssues: Number(stats.RESOLVED_ISSUES) || 0,
+          pendingIssues: Number(stats.PENDING_ISSUES) || 0,
+          inProgressIssues: Number(stats.IN_PROGRESS_ISSUES) || 0
+        }
+      });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        success: false,
+        message: "Error fetching user statistics",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in getUserIssueStats:", err);
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error occurred",
+      error: getErrorMessage(err)
+    });
+  }
+}
+
+// NEW: Get user's recent issues
+async function getUserRecentIssues(req, res) {
+  const citizen_id = req.user.user_id;
+  const limit = parseInt(req.query.limit) || 5;
+  
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
+        i.created_at, i.updated_at, l.full_address as location_address, l.upazila, l.district
+      FROM issues i
+      LEFT JOIN locations l ON i.location_id = l.location_id
+      WHERE i.citizen_id = :citizen_id
+      ORDER BY i.created_at DESC
+      FETCH FIRST :limit ROWS ONLY`, 
+      { citizen_id, limit }
+    );
+
+    if (result.success) {
+      const issues = result.rows.map((issue) => ({
+        issue_id: issue.ISSUE_ID,
+        title: issue.TITLE,
+        description: issue.DESCRIPTION,
+        category: issue.CATEGORY,
+        priority: issue.PRIORITY,
+        image_url: issue.IMAGE_URL,
+        status: issue.STATUS,
+        created_at: issue.CREATED_AT ? new Date(issue.CREATED_AT).toISOString() : null,
+        updated_at: issue.UPDATED_AT ? new Date(issue.UPDATED_AT).toISOString() : null,
+        location: issue.LOCATION_ADDRESS,
+        upazila: issue.UPAZILA,
+        district: issue.DISTRICT
+      }));
+      
+      res.json({ 
+        success: true,
+        issues
+      });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        success: false,
+        message: "Error fetching recent issues",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in getUserRecentIssues:", err);
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error occurred",
+      error: getErrorMessage(err)
+    });
+  }
+}
+
+// NEW: Worker applies for an issue
+async function applyForIssue(req, res) {
+  const { id: issue_id } = req.params;
+  const worker_id = req.user.user_id;
+  const { estimated_cost, estimated_time, proposal_description } = req.body;
+
+  if (!estimated_cost || !estimated_time || !proposal_description) {
+    return res.status(400).json({ 
+      message: "Missing required fields: estimated_cost, estimated_time, proposal_description" 
+    });
+  }
+
+  try {
+    const result = await executeQuery(
+      `INSERT INTO applications (issue_id, worker_id, estimated_cost, estimated_time, proposal_description)
+       VALUES (:issue_id, :worker_id, :estimated_cost, :estimated_time, :proposal_description)`,
+      { issue_id, worker_id, estimated_cost, estimated_time, proposal_description }
+    );
+
+    if (result.success) {
+      // Update issue status to 'applied' if it was 'submitted'
+      await executeQuery(
+        `UPDATE issues 
+         SET status = CASE WHEN status = 'submitted' THEN 'applied' ELSE status END 
+         WHERE issue_id = :issue_id`,
+        { issue_id }
+      );
+
+      res.status(201).json({ 
+        message: "Application submitted successfully!",
+        rowsAffected: result.rowsAffected
+      });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error submitting application",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in applyForIssue:", err);
+    res.status(500).json({ 
+      message: "Internal server error occurred",
+      error: getErrorMessage(err)
+    });
+  }
+}
+
+// NEW: Get applications for an issue
+async function getIssueApplications(req, res) {
+  const { id: issue_id } = req.params;
+  
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        a.application_id, a.issue_id, a.worker_id, a.estimated_cost, a.estimated_time,
+        a.proposal_description, a.status, a.feedback, a.applied_at, a.reviewed_at,
+        u.name as worker_name, u.email as worker_email, u.phone as worker_phone
+      FROM applications a
+      LEFT JOIN users u ON a.worker_id = u.user_id
+      WHERE a.issue_id = :issue_id
+      ORDER BY a.applied_at DESC`,
+      { issue_id }
+    );
+
+    if (result.success) {
+      const applications = result.rows.map((app) => ({
+        application_id: app.APPLICATION_ID,
+        issue_id: app.ISSUE_ID,
+        worker_id: app.WORKER_ID,
+        estimated_cost: app.ESTIMATED_COST,
+        estimated_time: app.ESTIMATED_TIME,
+        proposal_description: app.PROPOSAL_DESCRIPTION,
+        status: app.STATUS,
+        feedback: app.FEEDBACK,
+        applied_at: app.APPLIED_AT ? new Date(app.APPLIED_AT).toISOString() : null,
+        reviewed_at: app.REVIEWED_AT ? new Date(app.REVIEWED_AT).toISOString() : null,
+        worker_name: app.WORKER_NAME,
+        worker_email: app.WORKER_EMAIL,
+        worker_phone: app.WORKER_PHONE
+      }));
+      
+      res.json({ applications });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error fetching applications",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in getIssueApplications:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
+
+// NEW: Reject an application
+async function rejectIssueApplication(req, res) {
+  const { id: issue_id, applicationId: application_id } = req.params;
+  const admin_id = req.user.user_id;
+  const { feedback } = req.body;
+
+  try {
+    const result = await executeQuery(
+      `UPDATE applications 
+       SET status = 'rejected', feedback = :feedback, reviewed_by = :admin_id
+       WHERE application_id = :application_id AND issue_id = :issue_id`,
+      { feedback, admin_id, application_id, issue_id }
+    );
+
+    if (result.success) {
+      if (result.rowsAffected === 0) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+      res.json({ 
+        message: "Application rejected successfully!",
+        rowsAffected: result.rowsAffected
+      });
+    } else {
+      const errorMessage = getErrorMessage(result.error);
+      console.error("Database error:", errorMessage);
+      res.status(500).json({ 
+        message: "Error rejecting application",
+        error: errorMessage
+      });
+    }
+  } catch (err) {
+    console.error("Error in rejectIssueApplication:", err);
+    res.status(500).json({ message: "Internal server error occurred" });
+  }
+}
 
 module.exports = { 
   createIssue, 
@@ -392,5 +627,10 @@ module.exports = {
   updateIssue,
   deleteIssue,
   getIssuesByCategory,
-  getIssuesByStatus
+  getIssuesByStatus,
+  getUserIssueStats,
+  getUserRecentIssues,
+  applyForIssue,
+  getIssueApplications,
+  rejectIssueApplication
 };

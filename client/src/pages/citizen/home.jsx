@@ -22,19 +22,32 @@ const CitizenHome = () => {
 
     const fetchDashboardData = async () => {
         try {
-            // Fetch user's issues statistics
-            const statsResponse = await axios.get('/api/issues/user-stats');
+            // Fetch user's issues statistics - updated API call
+            const statsResponse = await axios.get('http://localhost:5000/api/issues/user/stats', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             if (statsResponse.data.success) {
                 setStats(statsResponse.data.stats);
             }
 
-            // Fetch recent issues
-            const recentResponse = await axios.get('/api/issues/user-recent?limit=3');
+            // Fetch recent issues - updated API call
+            const recentResponse = await axios.get('http://localhost:5000/api/issues/user/recent?limit=3', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             if (recentResponse.data.success) {
                 setRecentIssues(recentResponse.data.issues);
             }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
+            // Handle authentication errors
+            if (error.response?.status === 401) {
+                console.error('Authentication failed - redirecting to login');
+                // You might want to redirect to login here
+            }
         } finally {
             setLoading(false);
         }
@@ -72,7 +85,7 @@ const CitizenHome = () => {
     ];
 
     const getPriorityColor = (priority) => {
-        switch (priority) {
+        switch (priority?.toLowerCase()) {
             case 'urgent': return '#dc3545';
             case 'high': return '#fd7e14';
             case 'medium': return '#ffc107';
@@ -82,12 +95,29 @@ const CitizenHome = () => {
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
+        switch (status?.toLowerCase()) {
             case 'resolved': return '#28a745';
             case 'in_progress': return '#17a2b8';
-            case 'pending': return '#ffc107';
+            case 'assigned': return '#6f42c1';
+            case 'applied': return '#20c997';
+            case 'submitted': return '#ffc107';
+            case 'under_review': return '#fd7e14';
+            case 'closed': return '#6c757d';
             default: return '#6c757d';
         }
+    };
+
+    const getStatusDisplayText = (status) => {
+        const statusMap = {
+            'submitted': 'Pending Review',
+            'applied': 'Applications Received',
+            'assigned': 'Worker Assigned',
+            'in_progress': 'Work in Progress',
+            'under_review': 'Under Review',
+            'resolved': 'Completed',
+            'closed': 'Closed'
+        };
+        return statusMap[status?.toLowerCase()] || status;
     };
 
     if (loading) {
@@ -200,7 +230,7 @@ const CitizenHome = () => {
                                         className="issue-status"
                                         style={{ color: getStatusColor(issue.status) }}
                                     >
-                                        {issue.status.replace('_', ' ')}
+                                        {getStatusDisplayText(issue.status)}
                                     </div>
                                     <div className="issue-date">
                                         {new Date(issue.created_at).toLocaleDateString()}
