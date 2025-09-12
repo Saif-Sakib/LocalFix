@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import axios from "axios";
 import ViewDetailsModal from './view_details';
 import ApplyJobModal from '../worker/apply_job';
-import AcceptIssueModal from '../admin/accept_issue';
 import '../../styles/common/IssueList.css';
 
 function IssueList() {
@@ -14,8 +13,6 @@ function IssueList() {
 	const [selectedIssueId, setSelectedIssueId] = useState(null);
 	const [showApplyModal, setShowApplyModal] = useState(false);
 	const [selectedIssueForApply, setSelectedIssueForApply] = useState(null);
-	const [showAcceptModal, setShowAcceptModal] = useState(false);
-	const [selectedIssueForAccept, setSelectedIssueForAccept] = useState(null);
 	const { user } = useAuth();
 	const user_type = user?.user_type;
 
@@ -43,74 +40,6 @@ function IssueList() {
 		setSelectedIssueId(null);
 	};
 
-	const handleAccept = async (issueId, acceptanceData = null) => {
-		try {
-			console.log(`Accepting issue ${issueId}`, acceptanceData);
-			
-			// For now, we just use the existing status update API
-			// The budget and time data is logged for demonstration
-			if (acceptanceData) {
-				console.log('Budget and time data (for demo):', {
-					budget: `$${acceptanceData.estimatedBudget}`,
-					time: `${acceptanceData.estimatedTime} ${acceptanceData.timeUnit}`,
-					issueId: issueId
-				});
-				
-				// In a real implementation, this data would be sent to a specialized endpoint
-				// For now, we just update the status to 'accepted'
-			}
-			
-			// Use existing API to update status to 'accepted'
-			const response = await axios.put(`http://localhost:5000/api/issues/${issueId}/status`, { 
-				status: 'accepted' 
-			});
-			console.log('Status update response:', response.data);
-			
-			// Update local state
-			setIssues(prev => prev.map(issue => 
-				issue.ID === issueId 
-					? { ...issue, STATUS: 'accepted' }
-					: issue
-			));
-			
-			alert(`Issue accepted successfully! ${acceptanceData ? `Budget: $${acceptanceData.estimatedBudget}, Time: ${acceptanceData.estimatedTime} ${acceptanceData.timeUnit}` : ''}`);
-		} catch (error) {
-			console.error('Error accepting issue:', error);
-			alert('Error accepting issue. Please try again.');
-			throw error; // Re-throw to handle in modal
-		}
-	};
-
-	const handleShowAcceptModal = (issueId) => {
-		const issue = issues.find(issue => issue.ID === issueId);
-		setSelectedIssueForAccept(issue);
-		setShowAcceptModal(true);
-	};
-
-	const handleCloseAcceptModal = () => {
-		setShowAcceptModal(false);
-		setSelectedIssueForAccept(null);
-	};
-
-	const handleReject = async (issueId) => {
-		try {
-			console.log(`Rejecting issue ${issueId}`);
-			// API call to reject the issue
-			// const response = await axios.put(`http://localhost:5000/api/issues/${issueId}/reject`);
-			
-			// Update local state
-			setIssues(prev => prev.map(issue => 
-				issue.ID === issueId 
-					? { ...issue, STATUS: 'rejected' }
-					: issue
-			));
-			// alert('Issue rejected successfully!');
-		} catch (error) {
-			console.error('Error rejecting issue:', error);
-			alert('Error rejecting issue. Please try again.');
-		}
-	};
-
 	const handleApply = async (issueId) => {
 		// Find the issue to get its title
 		const issue = issues.find(issue => issue.ID === issueId);
@@ -121,6 +50,21 @@ function IssueList() {
 	const handleCloseApplyModal = () => {
 		setShowApplyModal(false);
 		setSelectedIssueForApply(null);
+	};
+
+	// Function to refresh issues after successful application
+	const handleApplicationSuccess = () => {
+		// Refresh the issues list
+		const fetchIssues = async () => {
+			try {
+				const res = await axios.get("http://localhost:5000/api/issues");
+				setIssues(res.data.issues);
+			} catch (err) {
+				console.error('Error refreshing issues:', err);
+			}
+		};
+		fetchIssues();
+		handleCloseApplyModal();
 	};
 
 	const getPriorityClass = (priority) => {
@@ -144,8 +88,6 @@ function IssueList() {
 				return 'status-submitted';
 			case 'applied':
 				return 'status-applied';
-			case 'accepted':
-				return 'status-accepted';
 			case 'assigned':
 				return 'status-assigned';
 			case 'in_progress':
@@ -156,8 +98,6 @@ function IssueList() {
 				return 'status-resolved';
 			case 'closed':
 				return 'status-closed';
-			case 'rejected':
-				return 'status-rejected';
 			default:
 				return 'status-default';
 		}
@@ -165,15 +105,13 @@ function IssueList() {
 
 	const getStatusDisplayText = (status) => {
 		const statusMap = {
-			'submitted': 'Pending',
+			'submitted': 'Open for Applications',
 			'applied': 'Applications Received',
-			'accepted': 'Accepted',
 			'assigned': 'Worker Assigned',
 			'in_progress': 'Work in Progress',
 			'under_review': 'Under Review',
 			'resolved': 'Completed',
-			'closed': 'Closed',
-			'rejected': 'Rejected'
+			'closed': 'Closed'
 		};
 		return statusMap[status?.toLowerCase()] || status;
 	};
@@ -199,6 +137,16 @@ function IssueList() {
 			return a.STATUS.localeCompare(b.STATUS);
 		}
 		return 0;
+	};
+
+	// Helper function to check if worker can apply for an issue
+	const canWorkerApply = (issue) => {
+		return issue.STATUS?.toLowerCase() === 'submitted';
+	};
+
+	// Helper function to check if issue should show apply button
+	const shouldShowApplyButton = (issue) => {
+		return user_type === 'worker' && canWorkerApply(issue);
 	};
 
 	if (loading) {
@@ -329,9 +277,19 @@ function IssueList() {
 										</div>
 									)}
 
+									{/* Show citizen info for all users */}
+									{issue.CITIZEN_NAME && (
+										<div className="info-row">
+											<div className="info-item">
+												<span className="label">Reported by</span>
+												<span className="value">{issue.CITIZEN_NAME}</span>
+											</div>
+										</div>
+									)}
+
 									<div className="created-date">
 										<span className="date-label">
-											{['resolved', 'closed'].includes(issue.STATUS) ? 'Completed' : 'Posted'}
+											{['resolved', 'closed'].includes(issue.STATUS?.toLowerCase()) ? 'Completed' : 'Posted'}
 										</span>
 										<span className="date-value">
 											{new Date(issue.CREATED_AT).toLocaleDateString('en-US', {
@@ -353,31 +311,29 @@ function IssueList() {
 										View Details
 									</button>
 
-									{user_type === 'admin' && (
-										<>
-											<button
-												className="btn-accept"
-												onClick={() => handleShowAcceptModal(issue.ID)}
-												disabled={issue.STATUS !== 'submitted'}
-											>
-												Accept
-											</button>
-											<button
-												className="btn-reject"
-												onClick={() => handleReject(issue.ID)}
-												disabled={issue.STATUS !== 'submitted'}
-											>
-												Reject
-											</button>
-										</>
-									)}
-
-									{user_type === 'worker' && (
-										<button className="btn-apply" onClick={() => handleApply(issue.ID)}>
+									{/* Only show apply button for workers on submitted issues */}
+									{shouldShowApplyButton(issue) && (
+										<button 
+											className="btn-apply" 
+											onClick={() => handleApply(issue.ID)}
+											title="Apply for this job"
+										>
 											Apply
 										</button>
 									)}
-									
+
+									{/* Show status info for workers on non-applicable issues */}
+									{user_type === 'worker' && !canWorkerApply(issue) && issue.STATUS?.toLowerCase() === 'applied' && (
+										<span className="apply-status">
+											Applications being reviewed
+										</span>
+									)}
+
+									{user_type === 'worker' && !canWorkerApply(issue) && ['assigned', 'in_progress'].includes(issue.STATUS?.toLowerCase()) && (
+										<span className="apply-status">
+											Job assigned to worker
+										</span>
+									)}
 								</div>
 							</div>
 						))}
@@ -395,17 +351,9 @@ function IssueList() {
 			<ApplyJobModal
 				isOpen={showApplyModal}
 				onClose={handleCloseApplyModal}
+				onSuccess={handleApplicationSuccess}
 				issueId={selectedIssueForApply?.ID}
 				issueTitle={selectedIssueForApply?.TITLE}
-			/>
-
-			{/* Accept Issue Modal */}
-			<AcceptIssueModal
-				isOpen={showAcceptModal}
-				onClose={handleCloseAcceptModal}
-				onAccept={handleAccept}
-				issueId={selectedIssueForAccept?.ID}
-				issueTitle={selectedIssueForAccept?.TITLE}
 			/>
 		</div>
 	);
