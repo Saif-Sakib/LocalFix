@@ -114,13 +114,13 @@
 	transform: translateY(-1px);
 }
 
-.btn-secondary {
+.logout {
 	background: white;
 	color: #374151;
 	border: 1px solid #d1d5db;
 }
 
-.btn-secondary:hover {
+.logout:hover {
 	background: #f9fafb;
 }
 
@@ -228,7 +228,7 @@
 
 /* Container */
 .container {
-	max-width: 1200px;
+	min-width: 100vw;
 	margin: 0 auto;
 	padding: 0 20px;
 }

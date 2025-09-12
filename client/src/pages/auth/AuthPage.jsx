@@ -122,7 +122,10 @@ const AuthPage = () => {
     };
 
     return (
-        <div className={`container ${!isLoginView ? "signup-active" : ""}`}>
+        <div 
+            className={`container ${!isLoginView ? "signup-active" : ""}`}
+            style={{minWidth: '60vw',marginTop:'20px'}}
+        >
             {/* Signup Form Container */}
             <div className="form-box register">
                 <form onSubmit={onSignup}>

@@ -53,7 +53,7 @@ const HomePage = () => {
 								<button onClick={handleDashboard} className="btn btn-primary">
 									Dashboard
 								</button>
-								<button onClick={handleLogout} className="btn btn-secondary">
+								<button onClick={handleLogout} className="btn logout">
 									Logout
 								</button>
 							</>
@@ -93,7 +93,6 @@ const HomePage = () => {
 					</div>
 
 					<div className="steps-grid">
-						{/* Step 1 */}
 						<div className="step-card step-blue">
 							<div className="step-icon">📋</div>
 							<h3>1. Report Issues</h3>
@@ -103,7 +102,6 @@ const HomePage = () => {
 							</p>
 						</div>
 
-						{/* Step 2 */}
 						<div className="step-card step-purple">
 							<div className="step-icon">⚒️</div>
 							<h3>2. Workers Apply</h3>
@@ -113,7 +111,6 @@ const HomePage = () => {
 							</p>
 						</div>
 
-						{/* Step 3 */}
 						<div className="step-card step-green">
 							<div className="step-icon">✅</div>
 							<h3>3. Get It Fixed</h3>

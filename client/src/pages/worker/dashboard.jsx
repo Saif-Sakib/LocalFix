@@ -1,18 +1,41 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Profile from "../common/profile";
 import IssueList from "../common/IssueList";
 import MyApplications from "./myApplications/myApplications";
+import WorkerHome from "./home";
 import "../../styles/common/dashboard.css";
 
 function WorkerDashboard() {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [left_hide, set_left_hide] = useState(false);
     const [currentTab, setCurrentTab] = useState("Home");
     const [isMobile, setIsMobile] = useState(false);
+
+    // Handle URL parameters for tab navigation
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const tab = urlParams.get('tab');
+        
+        const tabMapping = {
+            'profile': 'Profile',
+            'issues': 'Issues',
+            'my-applications': 'MyApplications',
+            'home': 'Home'
+        };
+
+        if (tab && tabMapping[tab]) {
+            setCurrentTab(tabMapping[tab]);
+        } else {
+            // If no tab parameter or invalid tab, default to Home and update URL
+            setCurrentTab('Home');
+            navigate('/worker?tab=home', { replace: true });
+        }
+    }, [location.search, navigate]);
 
     // Check if device is mobile and set initial state
     useEffect(() => {
@@ -40,6 +63,17 @@ function WorkerDashboard() {
     const handleTabChange = (tab) => {
         setCurrentTab(tab);
 
+        // Update URL to reflect the current tab
+        const tabUrlMapping = {
+            'Profile': 'profile',
+            'Issues': 'issues',
+            'MyApplications': 'my-applications',
+            'Home': 'home'
+        };
+
+        const urlTab = tabUrlMapping[tab] || 'home';
+        navigate(`/worker?tab=${urlTab}`, { replace: true });
+
         // Auto-hide panel on mobile after clicking any button
         if (isMobile) {
             set_left_hide(true);
@@ -60,30 +94,7 @@ function WorkerDashboard() {
             case "MyApplications":
                 return <MyApplications />;
             default:
-                return (
-                    <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        height: '60vh',
-                        flexDirection: 'column',
-                        gap: '20px'
-                    }}>
-                        <h2 style={{ 
-                            color: '#64748b', 
-                            fontSize: '28px', 
-                            fontWeight: '600' 
-                        }}>
-                            Welcome to Worker Dashboard
-                        </h2>
-                        <p style={{ 
-                            color: '#94a3b8', 
-                            fontSize: '16px' 
-                        }}>
-                            Select an option from the sidebar to get started.
-                        </p>
-                    </div>
-                );
+                return <WorkerHome />;
         }
     };
 
@@ -127,7 +138,7 @@ function WorkerDashboard() {
                             style={currentTab === "Issues" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-time"></i>
-                            <span>View Issues</span>
+                            <span>View Jobs</span>
                         </button>
 
                         <button
@@ -135,7 +146,7 @@ function WorkerDashboard() {
                             style={currentTab === "MyApplications" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-time"></i>
-                            <span>My Appliations</span>
+                            <span>My Applications</span>
                         </button>
                     </div>
                 </div>

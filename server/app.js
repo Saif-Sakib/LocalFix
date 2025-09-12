@@ -46,6 +46,7 @@ app.get('/', (req, res) => {
 app.use('/api/uploads', require('./routes/uploadRoutes'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issueRoutes'));
+app.use('/api/config', require('./routes/configRoutes'));
 
 // Test route
 app.get('/api/test', (req, res) => {

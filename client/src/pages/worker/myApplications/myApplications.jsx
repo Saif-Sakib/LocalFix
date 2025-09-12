@@ -272,13 +272,6 @@ function MyApplications() {
                                             <i className='bx bx-play-circle'></i>
                                             Start Work
                                         </button>
-                                        <button 
-                                            className="action-btn submit-proof-btn"
-                                            onClick={() => handleOpenModal(app.id)}
-                                        >
-                                            <i className='bx bx-camera'></i>
-                                            Submit Proof
-                                        </button>
                                     </>
                                 )}
                                 

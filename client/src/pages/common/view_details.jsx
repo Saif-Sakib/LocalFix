@@ -1,0 +1,318 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import '../../styles/common/view_details.css';
+
+const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
+	const [issue, setIssue] = useState(null);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
+	const [mapboxToken, setMapboxToken] = useState(null);
+
+	useEffect(() => {
+		if (isOpen && issueId) {
+			fetchIssueDetails();
+			fetchMapboxToken();
+		}
+	}, [isOpen, issueId]);
+
+	const fetchMapboxToken = async () => {
+		try {
+			const response = await axios.get('http://localhost:5000/api/config/mapbox-token');
+			setMapboxToken(response.data.token);
+		} catch (err) {
+			console.error('Error fetching Mapbox token:', err);
+		}
+	};
+
+	const fetchIssueDetails = async () => {
+		try {
+			setLoading(true);
+			setError(null);
+			const response = await axios.get(`http://localhost:5000/api/issues/${issueId}`);
+			setIssue(response.data.issue);
+		} catch (err) {
+			setError('Failed to fetch issue details');
+			console.error('Error fetching issue details:', err);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const getStatusDisplayText = (status) => {
+		const statusMap = {
+			'submitted': 'Open for Applications',
+			'applied': 'Applications Received',
+			'accepted': 'Accepted',
+			'assigned': 'Worker Assigned',
+			'in_progress': 'Work in Progress',
+			'under_review': 'Under Review',
+			'resolved': 'Completed',
+			'closed': 'Closed',
+			'rejected': 'Rejected'
+		};
+		return statusMap[status?.toLowerCase()] || status;
+	};
+
+	const getStatusClass = (status) => {
+		switch (status?.toLowerCase()) {
+			case 'submitted':
+				return 'status-submitted';
+			case 'applied':
+				return 'status-applied';
+			case 'accepted':
+				return 'status-accepted';
+			case 'assigned':
+				return 'status-assigned';
+			case 'in_progress':
+				return 'status-in-progress';
+			case 'under_review':
+				return 'status-under-review';
+			case 'resolved':
+				return 'status-resolved';
+			case 'closed':
+				return 'status-closed';
+			case 'rejected':
+				return 'status-rejected';
+			default:
+				return 'status-default';
+		}
+	};
+
+	const getPriorityClass = (priority) => {
+		switch (priority?.toLowerCase()) {
+			case 'urgent':
+				return 'priority-urgent';
+			case 'high':
+				return 'priority-high';
+			case 'medium':
+				return 'priority-medium';
+			case 'low':
+				return 'priority-low';
+			default:
+				return 'priority-medium';
+		}
+	};
+
+	// Function to get Mapbox static image URL
+	const getMapboxEmbedUrl = (latitude, longitude) => {
+		const lat = latitude || 23.8103; // Sample Dhaka coordinates
+		const lng = longitude || 90.4125;
+		const token = mapboxToken || 'pk.eyJ1IjoicmFnaWIxMDAiLCJhIjoiY205NzJ3bWV2MDNobDJqc2FubWxobThoMSJ9.n27eOtL6u0B5FmaIGhP_MA'; // fallback
+		return `https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s-marker+ff0000(${lng},${lat})/${lng},${lat},14/600x400?access_token=${token}`;
+	};
+
+	const handleMapClick = (latitude, longitude) => {
+		
+	};
+
+
+	if (!isOpen) return null;
+
+	return (
+		<div className="modal-overlay" onClick={onClose}>
+			<div className="modal-container" onClick={(e) => e.stopPropagation()}>
+				<div className="modal-header">
+					<h2 className="modal-title">Issue Details</h2>
+					<button className="modal-close" onClick={onClose}>
+						&times;
+					</button>
+				</div>
+
+				<div className="modal-body">
+					{loading && (
+						<div className="loading-state">
+							<div className="loading-spinner"></div>
+							<p>Loading issue details...</p>
+						</div>
+					)}
+
+					{error && (
+						<div className="error-state">
+							<p>{error}</p>
+							<button onClick={fetchIssueDetails} className="retry-btn">
+								Try Again
+							</button>
+						</div>
+					)}
+
+					{issue && !loading && (
+						<div className="issue-details">
+							<div className="detail-section">
+								<div className="section-header">
+									<h3>Basic Information</h3>
+								</div>
+								<div className="detail-grid">
+									<div className="detail-item">
+										<span className="detail-label">Issue ID:</span>
+										<span className="detail-value">#{issue.ID}</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Title:</span>
+										<span className="detail-value">{issue.TITLE}</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Category:</span>
+										<span className="detail-value">{issue.CATEGORY}</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Priority:</span>
+										<span className={`detail-value priority-badge ${getPriorityClass(issue.PRIORITY)}`}>
+											{issue.PRIORITY?.toUpperCase() || 'MEDIUM'}
+										</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Status:</span>
+										<span className={`detail-value status-badge ${getStatusClass(issue.STATUS)}`}>
+											{getStatusDisplayText(issue.STATUS)}
+										</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Posted Date:</span>
+										<span className="detail-value">
+											{new Date(issue.CREATED_AT).toLocaleDateString('en-US', {
+												year: 'numeric',
+												month: 'long',
+												day: 'numeric',
+												hour: '2-digit',
+												minute: '2-digit'
+											})}
+										</span>
+									</div>
+								</div>
+							</div>
+
+							<div className="detail-section">
+								<div className="section-header">
+									<h3>Description</h3>
+								</div>
+								<div className="description-content">
+									<p>{issue.DESCRIPTION || 'No description provided.'}</p>
+								</div>
+							</div>
+
+							<div className="detail-section">
+								<div className="section-header">
+									<h3>Location Information</h3>
+								</div>
+								<div className="location-details">
+									<div className="detail-item">
+										<span className="detail-label">Address:</span>
+										<span className="detail-value">{issue.LOCATION || 'Not specified'}</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Upazila:</span>
+										<span className="detail-value">{issue.UPAZILA || 'Not specified'}</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">District:</span>
+										<span className="detail-value">{issue.DISTRICT || 'Not specified'}</span>
+									</div>
+								</div>
+
+								{/* Map Section */}
+								<div className="map-section">
+									<h4>Location Map (Click for 3D Navigation)</h4>
+									<div className="map-container" 
+										 onClick={() => handleMapClick(issue.LATITUDE, issue.LONGITUDE)}
+										 style={{ cursor: 'pointer' }}
+										 title="Click to open 3D navigation in Mapbox">
+										<img 
+											src={getMapboxEmbedUrl(issue.LATITUDE, issue.LONGITUDE)}
+											alt="Issue Location Map"
+											className="location-map"
+											onError={(e) => {
+												e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDYwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yODUgMTc1SDE1NVYyMjVIMjg1VjE3NVoiIGZpbGw9IiNENUQ5REYiLz4KPHBhdGggZD0iTTMxNSAxNzVIMjg1VjIyNUgzMTVWMTc1WiIgZmlsbD0iI0Q1RDlERiIvPgo8cGF0aCBkPSJNMzQ1IDE3NUgzMTVWMjI1SDM0NVYxNzVaIiBmaWxsPSIjRDVEOURGIi8+CjxwYXRoIGQ9Ik0zNzUgMTc1SDM0NVYyMjVIMzc1VjE3NVoiIGZpbGw9IiNENUQ5REYiLz4KPHRleHQgeD0iMzAwIiB5PSIyNDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZCNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TWFwIG5vdCBhdmFpbGFibGU8L3RleHQ+Cjwvc3ZnPgo=";
+											}}
+										/>
+										<div className="map-overlay">
+											<div className="navigation-hint">
+												<span className="navigation-icon">🗺️</span>
+												<span>Click for 3D Navigation</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div className="detail-section">
+								<div className="section-header">
+									<h3>Project Details</h3>
+								</div>
+								<div className="project-details">
+									<div className="detail-item">
+										<span className="detail-label">Estimated Cost:</span>
+										<span className="detail-value cost-value">৳{(Math.random() * 50000 + 5000).toLocaleString()} BDT</span>
+									</div>
+									<div className="detail-item">
+										<span className="detail-label">Estimated Deadline:</span>
+										<span className="detail-value deadline-value">
+											{new Date(new Date(issue.CREATED_AT).getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+												year: 'numeric',
+												month: 'long',
+												day: 'numeric'
+											})}
+										</span>
+									</div>
+								</div>
+							</div>
+
+							{/* Citizen Information */}
+							{issue.CITIZEN_NAME && (
+								<div className="detail-section">
+									<div className="section-header">
+										<h3>Posted By</h3>
+									</div>
+									<div className="citizen-info">
+										<div className="detail-item">
+											<span className="detail-label">Name:</span>
+											<span className="detail-value">{issue.CITIZEN_NAME}</span>
+										</div>
+										{issue.CITIZEN_EMAIL && (
+											<div className="detail-item">
+												<span className="detail-label">Email:</span>
+												<span className="detail-value">{issue.CITIZEN_EMAIL}</span>
+											</div>
+										)}
+										{issue.CITIZEN_PHONE && (
+											<div className="detail-item">
+												<span className="detail-label">Phone:</span>
+												<span className="detail-value">{issue.CITIZEN_PHONE}</span>
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+
+							{/* Image Section */}
+							{issue.IMAGE_URL && (
+								<div className="detail-section">
+									<div className="section-header">
+										<h3>Issue Image</h3>
+									</div>
+									<div className="image-container">
+										<img 
+											src={`http://localhost:5000${issue.IMAGE_URL}`}
+											alt="Issue"
+											className="issue-image"
+											onError={(e) => {
+												e.target.style.display = 'none';
+											}}
+										/>
+									</div>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
+
+				<div className="modal-footer">
+					<button className="btn-secondary" onClick={onClose}>
+						Close
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+export default ViewDetailsModal;
