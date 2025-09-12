@@ -1,182 +1,101 @@
 import { useState, useEffect } from 'react';
 import '../../styles/admin/application.css';
+import { useAuth } from '../../context/AuthContext';
 
 function Application() {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [feedback, setFeedback] = useState({}); // Store feedback for each application
+    const [error, setError] = useState(null);
+    const [feedback, setFeedback] = useState({});
+    const { token } = useAuth();
+
+    // Function to fetch data from the API
+    const loadApplications = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const response = await fetch('/api/issues/applications/pending', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('API Response:', data); // Debug log
+            setApplications(data.applications || []);
+            
+        } catch (error) {
+            console.error("Error loading applications:", error);
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         loadApplications();
-    }, []);
+        
+    }, [token]);
 
-    const loadApplications = () => {
-        // Sample applications data - multiple workers applying for same jobs
-        const sampleApplications = [
-            // Job 1: Street Light Repair - 3 workers applied
-            {
-                application_id: 1,
-                job_id: 1,
-                job_title: "Street Light Repair - Main Road",
-                issue_description: "Multiple street lights on Main Street have been out for the past week, creating safety concerns for pedestrians and drivers.",
-                issue_image: "/uploads/issue_img/1757312892735-781821559.png",
-                location: "Main Street, Block A, Dhanmondi, Dhaka-1205",
-                worker: {
-                    id: 101,
-                    name: "Ahmed Rahman",
-                    phone: "+880 1712-345678"
+    const handleAcceptApplication = async (applicationId, jobId) => {
+        const applicationFeedback = feedback[applicationId] || 'Your application has been approved.';
+        
+        try {
+            const response = await fetch(`/api/issues/${jobId}/applications/${applicationId}/accept`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                estimated_cost: 4800.00,
-                estimated_time: "2 days",
-                proposal: "I am a certified electrician with 5 years of experience. I can fix this electrical issue quickly and safely. I have all the necessary tools and equipment.",
-                applied_at: "2025-09-12T10:30:00Z",
-                status: "pending"
-            },
-            {
-                application_id: 2,
-                job_id: 1, // Same job as above
-                job_title: "Street Light Repair - Main Road",
-                issue_description: "Multiple street lights on Main Street have been out for the past week, creating safety concerns for pedestrians and drivers.",
-                issue_image: "/uploads/issue_img/1757312892735-781821559.png",
-                location: "Main Street, Block A, Dhanmondi, Dhaka-1205",
-                worker: {
-                    id: 102,
-                    name: "Karim Hassan",
-                    phone: "+880 1723-456789"
-                },
-                estimated_cost: 5200.00,
-                estimated_time: "3 days",
-                proposal: "I have 8 years of experience in electrical work. I can provide high-quality repair with 1-year warranty on my work.",
-                applied_at: "2025-09-12T11:15:00Z",
-                status: "pending"
-            },
-            {
-                application_id: 3,
-                job_id: 1, // Same job as above
-                job_title: "Street Light Repair - Main Road",
-                issue_description: "Multiple street lights on Main Street have been out for the past week, creating safety concerns for pedestrians and drivers.",
-                issue_image: "/uploads/issue_img/1757312892735-781821559.png",
-                location: "Main Street, Block A, Dhanmondi, Dhaka-1205",
-                worker: {
-                    id: 103,
-                    name: "Rafiq Ahmed",
-                    phone: "+880 1734-567890"
-                },
-                estimated_cost: 4500.00,
-                estimated_time: "1.5 days",
-                proposal: "I am an experienced electrician specializing in street lighting. I can complete this work efficiently with minimal disruption to traffic.",
-                applied_at: "2025-09-12T14:20:00Z",
-                status: "pending"
-            },
-            
-            // Job 2: Road Repair - 2 workers applied
-            {
-                application_id: 4,
-                job_id: 2,
-                job_title: "Road Repair - Pothole Fix",
-                issue_description: "Several large potholes have formed on Gulshan Avenue causing damage to vehicles and creating traffic hazards.",
-                issue_image: null,
-                location: "Gulshan Avenue, Gulshan-1, Dhaka-1212",
-                worker: {
-                    id: 104,
-                    name: "Nasir Uddin",
-                    phone: "+880 1745-678901"
-                },
-                estimated_cost: 14500.00,
-                estimated_time: "3 days",
-                proposal: "My team has all the necessary equipment for road repair. We can complete this pothole repair within the deadline with high-quality materials.",
-                applied_at: "2025-09-11T14:15:00Z",
-                status: "pending"
-            },
-            {
-                application_id: 5,
-                job_id: 2, // Same job as above
-                job_title: "Road Repair - Pothole Fix",
-                issue_description: "Several large potholes have formed on Gulshan Avenue causing damage to vehicles and creating traffic hazards.",
-                issue_image: null,
-                location: "Gulshan Avenue, Gulshan-1, Dhaka-1212",
-                worker: {
-                    id: 105,
-                    name: "Shahid Islam",
-                    phone: "+880 1756-789012"
-                },
-                estimated_cost: 13800.00,
-                estimated_time: "2 days",
-                proposal: "I have extensive experience in road construction and repair. I use premium quality materials and can complete the work faster than estimated.",
-                applied_at: "2025-09-11T16:45:00Z",
-                status: "pending"
-            },
+                body: JSON.stringify({ feedback: applicationFeedback })
+            });
 
-            // Job 3: Drainage Cleaning - 1 worker applied
-            {
-                application_id: 6,
-                job_id: 3,
-                job_title: "Drainage System Cleaning",
-                issue_description: "The main drainage system is blocked causing water to accumulate on the street during rain.",
-                issue_image: null,
-                location: "Sector 7, Road 12, Uttara, Dhaka-1230",
-                worker: {
-                    id: 106,
-                    name: "Abdul Kalam",
-                    phone: "+880 1767-890123"
-                },
-                estimated_cost: 7500.00,
-                estimated_time: "1 day",
-                proposal: "I have experience with municipal drainage systems and can clear this blockage efficiently. I will use proper tools and ensure the drainage flows smoothly.",
-                applied_at: "2025-09-10T09:45:00Z",
-                status: "pending"
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to accept application');
             }
-        ];
 
-        setApplications(sampleApplications);
-        setLoading(false);
+            alert("Application accepted! The page will now refresh.");
+            await loadApplications(); // Wait for refresh to complete
+
+        } catch (error) {
+            console.error("Error accepting application:", error);
+            alert(`Error: ${error.message}`);
+        }
     };
 
-    const handleAcceptApplication = (applicationId, jobId) => {
-        const applicationFeedback = feedback[applicationId] || '';
+    const handleRejectApplication = async (applicationId, jobId) => {
+        const applicationFeedback = feedback[applicationId] || 'Your application was not selected at this time.';
         
-        setApplications(prevApplications => 
-            prevApplications.map(app => {
-                if (app.job_id === jobId) {
-                    if (app.application_id === applicationId) {
-                        return { ...app, status: "accepted", feedback: applicationFeedback };
-                    } else {
-                        return { ...app, status: "rejected", feedback: "Application not selected for this job." };
-                    }
-                }
-                return app;
-            })
-        );
-        
-        // Clear feedback after use
-        setFeedback(prev => {
-            const newFeedback = { ...prev };
-            delete newFeedback[applicationId];
-            return newFeedback;
-        });
-        
-        alert("Application accepted! All other applications for this job have been automatically rejected.");
-    };
+        try {
+            const response = await fetch(`/api/issues/${jobId}/applications/${applicationId}/reject`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ feedback: applicationFeedback })
+            });
 
-    const handleRejectApplication = (applicationId) => {
-        const applicationFeedback = feedback[applicationId] || '';
-        
-        setApplications(prevApplications => 
-            prevApplications.map(app => 
-                app.application_id === applicationId 
-                    ? { ...app, status: "rejected", feedback: applicationFeedback }
-                    : app
-            )
-        );
-        
-        // Clear feedback after use
-        setFeedback(prev => {
-            const newFeedback = { ...prev };
-            delete newFeedback[applicationId];
-            return newFeedback;
-        });
-        
-        alert("Application rejected!");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to reject application');
+            }
+            
+            alert("Application rejected!");
+            await loadApplications(); // Wait for refresh to complete
+
+        } catch (error) {
+            console.error("Error rejecting application:", error);
+            alert(`Error: ${error.message}`);
+        }
     };
 
     const handleFeedbackChange = (applicationId, feedbackText) => {
@@ -194,6 +113,7 @@ function Application() {
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString('en-BD', {
             year: 'numeric',
             month: 'short',
@@ -216,21 +136,32 @@ function Application() {
     if (loading) {
         return (
             <div className="applications-container">
-                <div className="loading">Loading applications...</div>
+                <div className="loading">
+                    <p>Loading applications...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="applications-container">
+                <div className="error-message">
+                    <h2>Error Loading Applications</h2>
+                    <p>{error}</p>
+                    <button onClick={loadApplications} className="retry-btn">
+                        Retry
+                    </button>
+                </div>
             </div>
         );
     }
 
     return (
         <div className="applications-container">
-            <div className="applications-header">
-                <h1>Worker Applications</h1>
-                <p>Review and manage worker applications for approved jobs</p>
-            </div>
-
             {Object.keys(groupedApplications).length === 0 ? (
                 <div className="no-applications">
-                    <p>No applications found.</p>
+                    <p>No pending applications found.</p>
                 </div>
             ) : (
                 <div className="jobs-list">
@@ -245,7 +176,13 @@ function Application() {
                                         <p><strong>Location:</strong> {firstApp.location}</p>
                                         {firstApp.issue_image && (
                                             <div className="job-image">
-                                                <img src={`http://localhost:5000${firstApp.issue_image}`} alt="Issue" />
+                                                <img 
+                                                    src={`http://localhost:5000${firstApp.issue_image}`} 
+                                                    alt="Issue" 
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                    }}
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -257,12 +194,12 @@ function Application() {
                                             <div className="application-header">
                                                 <div className="worker-info">
                                                     <div className="worker-avatar">
-                                                        {application.worker.name.charAt(0).toUpperCase()}
+                                                        {application.worker?.name?.charAt(0)?.toUpperCase() || 'W'}
                                                     </div>
                                                     <div className="worker-details">
-                                                        <h3>{application.worker.name}</h3>
-                                                        <p>ID: {application.worker.id}</p>
-                                                        <p>Phone: {application.worker.phone}</p>
+                                                        <h3>{application.worker?.name || 'Unknown Worker'}</h3>
+                                                        <p>ID: {application.worker?.id || 'N/A'}</p>
+                                                        <p>Phone: {application.worker?.phone || 'N/A'}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -319,7 +256,7 @@ function Application() {
                                                         </button>
                                                         <button 
                                                             className="reject-btn"
-                                                            onClick={() => handleRejectApplication(application.application_id)}
+                                                            onClick={() => handleRejectApplication(application.application_id, application.job_id)}
                                                         >
                                                             Reject
                                                         </button>

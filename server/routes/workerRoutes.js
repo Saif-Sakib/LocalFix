@@ -1,11 +1,25 @@
-// server/routes/workerRoutes.js
 const express = require("express");
 const router = express.Router();
-const { getMyApplications, updateProofProgress } = require("../controllers/workerController");
+const { 
+  getMyApplications, 
+  updateWorkProgress, 
+  submitWorkProof,
+  deleteApplication,
+  getWorkerStats
+} = require("../controllers/workerController");
 const { authenticateToken, authorize } = require('../middleware/auth');
 
-// GET all applications and assigned jobs for the logged-in worker
+// Worker statistics
+router.get("/stats", authenticateToken, authorize('worker'), getWorkerStats);
+
+// Worker applications and jobs
 router.get("/applications", authenticateToken, authorize('worker'), getMyApplications);
-router.put('/start-work', authenticateToken, authorize('worker'), updateProofProgress);
+
+// Work progress management
+router.put('/start', authenticateToken, authorize('worker'), updateWorkProgress);
+router.post('/work/submit-proof', authenticateToken, authorize('worker'), submitWorkProof);
+
+// Application management
+router.delete('/applications/:issueId', authenticateToken, authorize('worker'), deleteApplication);
 
 module.exports = router;

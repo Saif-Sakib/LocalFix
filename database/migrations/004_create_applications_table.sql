@@ -6,7 +6,7 @@ CREATE TABLE applications (
     estimated_cost NUMBER(10,2) NOT NULL,
     estimated_time VARCHAR2(50) NOT NULL,
     proposal_description CLOB,
-    status VARCHAR2(20) DEFAULT 'submitted' CHECK (status IN ('submitted', 'under_review', 'accepted', 'rejected')),
+    status VARCHAR2(20) DEFAULT 'submitted' CHECK (status IN ('submitted', 'accepted', 'rejected')),
     feedback CLOB,
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP,
