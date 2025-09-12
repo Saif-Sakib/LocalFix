@@ -201,7 +201,7 @@ async function updateIssueStatus(req, res) {
       });
     }
 
-    const result = await executeTransaction(
+    const result = await executeQuery(
       `UPDATE issues SET status = :status WHERE issue_id = :id`, { status, id }
     );
 
@@ -246,7 +246,7 @@ async function updateIssue(req, res) {
     }
 
     const sql = `UPDATE issues SET ${updateFields.join(', ')} WHERE issue_id = :id`;
-    const result = await executeTransaction(sql, binds);
+    const result = await executeQuery(sql, binds);
 
     if (result.success) {
       if (result.rowsAffected === 0) {
@@ -270,7 +270,7 @@ async function updateIssue(req, res) {
 async function deleteIssue(req, res) {
   const { id } = req.params;
   try {
-    const result = await executeTransaction(`DELETE FROM issues WHERE issue_id = :id`, { id });
+    const result = await executeQuery(`DELETE FROM issues WHERE issue_id = :id`, { id });
 
     if (result.success) {
       if (result.rowsAffected === 0) {

@@ -1,7 +1,7 @@
 // server/models/User.js
 const oracledb = require('oracledb');
 const bcrypt = require('bcryptjs');
-const { executeQuery, executeTransaction } = require('../config/database');
+const { executeQuery } = require('../config/database');
 
 class User {
     static async findByEmail(email) {
@@ -50,7 +50,7 @@ class User {
             user_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
         };
         
-        const result = await executeTransaction(sql, binds);
+        const result = await executeQuery(sql, binds);
         
         if (!result.success) {
             throw new Error(`Failed to create user: ${result.error}`);
@@ -129,7 +129,7 @@ class User {
         const sql = `UPDATE users SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP 
                      WHERE user_id = :user_id`;
         
-        const result = await executeTransaction(sql, binds);
+        const result = await executeQuery(sql, binds);
         
         if (!result.success) {
             throw new Error(`Failed to update user: ${result.error}`);
@@ -141,7 +141,7 @@ class User {
     static async delete(userId) {
         const sql = `DELETE FROM users WHERE user_id = :user_id`;
         
-        const result = await executeTransaction(sql, [userId]);
+        const result = await executeQuery(sql, [userId]);
         
         if (!result.success) {
             throw new Error(`Failed to delete user: ${result.error}`);
