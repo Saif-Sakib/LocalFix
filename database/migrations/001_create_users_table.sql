@@ -7,6 +7,7 @@ CREATE TABLE users (
     hashed_pass VARCHAR2(255) NOT NULL,
     user_type VARCHAR2(20) CHECK (user_type IN ('citizen', 'worker', 'admin')) NOT NULL,
     status VARCHAR2(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended')),
+    img_url VARCHAR2(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

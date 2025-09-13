@@ -1,0 +1,89 @@
+Oracle XE Docker Setup Guide
+
+# Prerequisites
+- Docker installed on your system
+- DBeaver (for database management)
+- VSCode with SQLTools extension (optional)
+
+1. Docker Setup
+
+# Pull Oracle XE Image
+docker pull gvenzl/oracle-xe
+
+# Initial Container Setup
+Note: This is only needed the first time to initialize the database
+docker run -d --name oracle-db -p 1521:1521 -e ORACLE_PASSWORD=fix -v oracle_data:/opt/oracle/oradata gvenzl/oracle-xe
+
+# Verify Database Status
+docker logs -f oracle-db
+Wait until you see: `DATABASE IS READY TO USE!`
+
+2. Container Management
+
+# Check Running Processes
+docker ps -a
+
+# Start/Stop Operations
+# Start the database
+docker start oracle-db
+# Stop the container (run this when closing your PC)
+docker stop <container-id>
+
+# Remove the container (if needed)
+docker rm <container-id>
+
+# 3. DBeaver Configuration
+
+# Setup New Connection
+1. Open DBeaver
+2. Go to Database → New Database Connection → Oracle
+
+# Connection Parameters
+- Host: localhost
+- Port: 1521
+- Database: XE
+- Authentication: Database Native
+- User: system
+- Password: fix (the one set in the Docker command)
+
+# Test Connection
+1. Click "Test Connection..."
+2. If successful, click "Finish"
+3. You are now connected as the system user
+
+4. Create Dedicated User
+
+# Create LocalFix User
+Run these commands using the system credentials:
+
+-- To drop user: 
+DROP USER local CASCADE;
+
+CREATE USER local IDENTIFIED BY fix;
+
+-- Minimum privileges for app development
+GRANT CREATE SESSION TO local;
+GRANT CREATE TABLE TO local;
+GRANT CREATE SEQUENCE TO local;
+GRANT CREATE TRIGGER TO local;
+GRANT CREATE VIEW TO local;
+GRANT CREATE PROCEDURE TO local;
+GRANT UNLIMITED TABLESPACE TO local;
+
+5. Alternative Access Methods
+
+# SQLPlus CLI (Not Recommended)
+# Access container bash
+docker exec -it oracle-db /bin/bash
+
+# Connect via SQLPlus
+sqlplus local/fix@XEPDB1
+
+6. VSCode SQLTools Configuration (didn't worked)
+
+# Installation Steps
+1. Install SQLTools extension
+2. Install SQLTools Oracle Driver extension
+3. Install oracledb in the extension folder:
+   cd ~/.local/share/vscode-sqltools
+   npm install oracledb

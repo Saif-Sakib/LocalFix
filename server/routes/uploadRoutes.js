@@ -1,77 +1,51 @@
+// server/routes/uploadRoutes.js
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const uploadService = require('../services/uploadService');
+const fileController = require('../controllers/fileController');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
 /**
- * Factory to create multer storage for different upload types
+ * Upload Routes - API-only file operations
+ * All file uploads and access go through these API routes for better security and control
  */
-function makeStorage(folderName) {
-    const uploadPath = path.join(__dirname, `../../uploads/${folderName}`);
 
-    // Ensure folder exists
-    if (!fs.existsSync(uploadPath)) {
-        fs.mkdirSync(uploadPath, { recursive: true });
-    }
+// File upload routes - All require authentication
+router.post('/issue', 
+    authenticateToken,
+    uploadService.issueUpload.single('image'), 
+    fileController.uploadIssueImage
+);
 
-    return multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, uploadPath);
-        },
-        filename: (req, file, cb) => {
-            const uniqueSuffix =
-                Date.now() + '-' + Math.round(Math.random() * 1e9);
-            cb(null, uniqueSuffix + path.extname(file.originalname));
-        },
-    });
-}
+router.post('/profile', 
+    authenticateToken,
+    uploadService.profileUpload.single('image'), 
+    fileController.uploadProfileImage
+);
 
-/**
- * Helper function to return full file URL
- */
-function buildFileUrl(req, folderName, filename) {
-    const serverUrl =
-        process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
-    return `${serverUrl}/uploads/${folderName}/${filename}`;
-}
+router.post('/proof', 
+    authenticateToken,
+    uploadService.proofUpload.single('image'), 
+    fileController.uploadProofImage
+);
 
-/**
- * Route for issue images
- * **--- NEW ROUTE ADDED ---**
- */
-const issueUpload = multer({ storage: makeStorage('issue_img') });
-router.post('/issue', issueUpload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res
-            .status(400)
-            .json({ success: false, message: 'No file uploaded' });
-    }
+// File serving routes - Public access for images (but controlled through API)
+router.get('/image/:folder/:filename', fileController.getImage);
+router.get('/info/:folder/:filename', fileController.getImageInfo);
 
-    res.json({
-        success: true,
-        message: 'Issue image uploaded successfully',
-        fileUrl: buildFileUrl(req, 'issue_img', req.file.filename),
-    });
-});
+// File management routes - Require authentication
+router.delete('/image/:folder/:filename', 
+    authenticateToken, 
+    fileController.deleteImage
+);
 
-/**
- * Route for profile pictures
- */
-const profileUpload = multer({ storage: makeStorage('profiles') });
-router.post('/profile', profileUpload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res
-            .status(400)
-            .json({ success: false, message: 'No file uploaded' });
-    }
+router.get('/list/:folder', 
+    authenticateToken, 
+    fileController.listImages
+);
 
-    res.json({
-        success: true,
-        message: 'Profile picture uploaded successfully',
-        fileUrl: buildFileUrl(req, 'profiles', req.file.filename),
-    });
-});
+// Error handling middleware for multer
+router.use(fileController.handleUploadError);
 
 module.exports = router;

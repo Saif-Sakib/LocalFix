@@ -10,12 +10,25 @@ function IssueList() {
 	const [issues, setIssues] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [sort_by, setSortBy] = useState('date_desc');
+	const [filterByStatus, setFilterByStatus] = useState('all');
 	const [showModal, setShowModal] = useState(false);
 	const [selectedIssueId, setSelectedIssueId] = useState(null);
 	const [showApplyModal, setShowApplyModal] = useState(false);
 	const [selectedIssueForApply, setSelectedIssueForApply] = useState(null);
 	const { user } = useAuth();
 	const user_type = user?.user_type;
+
+	// Define available status options
+	const statusOptions = [
+		{ value: 'all', label: '📊 All Status' },
+		{ value: 'submitted', label: '📝 Open for Applications' },
+		{ value: 'applied', label: '📩 Applications Received' },
+		{ value: 'assigned', label: '👤 Worker Assigned' },
+		{ value: 'in_progress', label: '🔄 Work in Progress' },
+		{ value: 'under_review', label: '🔍 Under Review' },
+		{ value: 'resolved', label: '✅ Completed' },
+		{ value: 'closed', label: '🔒 Closed' }
+	];
 
 	useEffect(() => {
 		async function fetchIssues() {
@@ -171,6 +184,8 @@ function IssueList() {
 		);
 	}
 
+
+
 	return (
 		<AnimatedBackground>
 			<div className="issue-page-container">
@@ -179,7 +194,14 @@ function IssueList() {
 					<h2 className="page-title">Issue Management</h2>
 					<div className="filters-count">
 						<span className="total-count">
-							{issues.length} Total Issues
+							{(() => {
+								const filteredCount = issues.filter(issue => 
+									filterByStatus === 'all' || issue.STATUS?.toLowerCase() === filterByStatus.toLowerCase()
+								).length;
+								return filterByStatus === 'all' 
+									? `${issues.length} Total Issues`
+									: `${filteredCount} of ${issues.length} Issues`;
+							})()}
 						</span>
 					</div>
 				</div>
@@ -205,11 +227,33 @@ function IssueList() {
 						</select>
 					</div>
 
+					<div className="filter-group">
+						<label htmlFor="filter_status" className="filter-label">
+							<i className="filter-icon">🔍</i>
+							Filter by Status
+						</label>
+						<select
+							name="filter_status"
+							id="filter_status"
+							value={filterByStatus}
+							onChange={e => setFilterByStatus(e.target.value)}
+							className="filter-select"
+							style={{ minWidth: '250px' }}
+						>
+							{statusOptions.map(option => (
+								<option key={option.value} value={option.value}>
+									{option.label}
+								</option>
+							))}
+						</select>
+					</div>
+
 					<div className="filter-actions">
 						<button 
 							className="clear-filters-btn"
 							onClick={() => {
 								setSortBy('date_desc');
+								setFilterByStatus('all');
 							}}
 							title="Reset all filters"
 						>
@@ -221,10 +265,28 @@ function IssueList() {
 
 			<div className="issue-scrollpane">
 				<div className="issues-grid">
-					{issues
-						.slice()
-						.sort((a, b) => handle_sort_by(a, b))
-						.map(issue => (
+					{(() => {
+						const filteredIssues = issues
+							.slice()
+							.filter(issue => filterByStatus === 'all' || issue.STATUS?.toLowerCase() === filterByStatus.toLowerCase());
+
+						if (filteredIssues.length === 0) {
+							return (
+								<div className="empty-state" style={{gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px'}}>
+									<h3>No Issues Found</h3>
+									<p>
+										{filterByStatus === 'all' 
+											? 'There are currently no issues reported.' 
+											: 'No issues match the selected status filter. Try changing the filter or reset to view all issues.'
+										}
+									</p>
+								</div>
+							);
+						}
+
+						return filteredIssues
+							.sort((a, b) => handle_sort_by(a, b))
+							.map(issue => (
 							<div className="issue-card" key={issue.ID}>
 								<div className={`card-header ${getStatusClass(issue.STATUS)}`}>
 									<h3 className="card-title">{issue.TITLE}</h3>
@@ -338,7 +400,8 @@ function IssueList() {
 									)}
 								</div>
 							</div>
-						))}
+						));
+					})()}
 				</div>
 			</div>
 

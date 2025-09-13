@@ -60,6 +60,7 @@
 
 .filters-container {
 	display: flex;
+	/* justify-content: space-around; */
 	gap: 20px;
 	align-items: end;
 	flex-wrap: wrap;
@@ -124,6 +125,7 @@
 }
 
 .filter-actions {
+	margin-left: auto;
 	display: flex;
 	align-items: center;
 	width: 100%;
