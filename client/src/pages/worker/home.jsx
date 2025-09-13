@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import axios from 'axios';
 import '../../styles/worker/home.css';
 
@@ -144,7 +145,8 @@ const WorkerHome = () => {
     }
 
     return (
-        <div className="worker-home">
+        <AnimatedBackground>
+            <div className="worker-home">
             {/* Welcome Section */}
             <div className="welcome-section">
                 <div className="welcome-content">
@@ -346,7 +348,8 @@ const WorkerHome = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </AnimatedBackground>
     );
 };
 

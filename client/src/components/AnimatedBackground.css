@@ -1,0 +1,357 @@
+/* Animated Page Container */
+.animated-page-container {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+    z-index: 1;
+}
+
+/* Animated Background Shapes */
+.background-shapes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.08));
+    animation: shapeFloat 20s infinite ease-in-out;
+}
+
+.shape-1 {
+    width: 120px;
+    height: 120px;
+    top: 10%;
+    left: 10%;
+    background: linear-gradient(45deg, rgba(59, 130, 246, 0.12), rgba(147, 51, 234, 0.08));
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 80px;
+    height: 80px;
+    top: 60%;
+    right: 15%;
+    background: linear-gradient(45deg, rgba(168, 85, 247, 0.1), rgba(59, 130, 246, 0.08));
+    animation-delay: -5s;
+}
+
+.shape-3 {
+    width: 200px;
+    height: 200px;
+    bottom: 20%;
+    left: 60%;
+    background: linear-gradient(45deg, rgba(6, 182, 212, 0.08), rgba(168, 85, 247, 0.06));
+    animation-delay: -10s;
+}
+
+.shape-4 {
+    width: 60px;
+    height: 60px;
+    top: 30%;
+    right: 40%;
+    background: linear-gradient(45deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.08));
+    animation-delay: -15s;
+}
+
+.shape-5 {
+    width: 140px;
+    height: 140px;
+    bottom: 10%;
+    right: 10%;
+    background: linear-gradient(45deg, rgba(147, 51, 234, 0.08), rgba(99, 102, 241, 0.1));
+    animation-delay: -8s;
+}
+
+@keyframes shapeFloat {
+    0%, 100% {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+        opacity: 0.6;
+    }
+    25% {
+        transform: translateY(-30px) translateX(20px) rotate(90deg);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translateY(-60px) translateX(-20px) rotate(180deg);
+        opacity: 0.4;
+    }
+    75% {
+        transform: translateY(-30px) translateX(-40px) rotate(270deg);
+        opacity: 0.7;
+    }
+}
+
+/* Floating Particles */
+.floating-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: linear-gradient(45deg, rgba(99, 102, 241, 0.6), rgba(168, 85, 247, 0.4));
+    border-radius: 50%;
+    animation: particleFloat 15s infinite linear;
+}
+
+.particle-1 {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+    background: rgba(59, 130, 246, 0.5);
+}
+
+.particle-2 {
+    top: 40%;
+    left: 30%;
+    animation-delay: -2s;
+    background: rgba(168, 85, 247, 0.5);
+}
+
+.particle-3 {
+    top: 60%;
+    left: 70%;
+    animation-delay: -4s;
+    background: rgba(6, 182, 212, 0.5);
+}
+
+.particle-4 {
+    top: 80%;
+    left: 20%;
+    animation-delay: -6s;
+    background: rgba(99, 102, 241, 0.5);
+}
+
+.particle-5 {
+    top: 30%;
+    right: 20%;
+    animation-delay: -8s;
+    background: rgba(147, 51, 234, 0.5);
+}
+
+.particle-6 {
+    top: 70%;
+    right: 40%;
+    animation-delay: -10s;
+    background: rgba(59, 130, 246, 0.5);
+}
+
+.particle-7 {
+    top: 50%;
+    left: 80%;
+    animation-delay: -12s;
+    background: rgba(168, 85, 247, 0.5);
+}
+
+.particle-8 {
+    top: 90%;
+    right: 10%;
+    animation-delay: -14s;
+    background: rgba(6, 182, 212, 0.5);
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(0px) translateX(0px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) translateX(50px);
+        opacity: 0;
+    }
+}
+
+/* Sparkle Effects */
+.sparkles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.sparkle {
+    position: absolute;
+    font-size: 16px;
+    animation: sparkleFloat 8s infinite ease-in-out;
+    opacity: 0;
+}
+
+.sparkle-1 {
+    top: 15%;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.sparkle-2 {
+    top: 45%;
+    right: 25%;
+    animation-delay: -1s;
+}
+
+.sparkle-3 {
+    bottom: 35%;
+    left: 50%;
+    animation-delay: -2s;
+}
+
+.sparkle-4 {
+    top: 35%;
+    left: 70%;
+    animation-delay: -3s;
+}
+
+.sparkle-5 {
+    bottom: 50%;
+    right: 60%;
+    animation-delay: -4s;
+}
+
+.sparkle-6 {
+    top: 25%;
+    right: 10%;
+    animation-delay: -5s;
+}
+
+.sparkle-7 {
+    bottom: 20%;
+    left: 30%;
+    animation-delay: -6s;
+}
+
+.sparkle-8 {
+    top: 70%;
+    left: 80%;
+    animation-delay: -7s;
+}
+
+@keyframes sparkleFloat {
+    0%, 100% {
+        opacity: 0;
+        transform: translateY(0px) scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-20px) scale(1.2);
+    }
+}
+
+/* Page Content */
+.page-content {
+    position: relative;
+    z-index: 100;
+    min-height: 100vh;
+    background: transparent;
+}
+
+/* Override automatic styling for specific components */
+.page-content > .home-container,
+.page-content > .admin-home,
+.page-content > .worker-home,
+.page-content > .citizen-home,
+.page-content > .issue-page-container,
+.page-content > .applications-container,
+.page-content > .my-applications-container,
+.page-content > .container {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+/* Apply glassmorphism to main content sections */
+.page-content .welcome-section,
+.page-content .stats-section,
+.page-content .quick-actions-section,
+.page-content .charts-section,
+.page-content .recent-activity-section,
+.page-content .filters-section,
+.page-content .applications-header,
+.page-content .hero,
+.page-content .how-it-works,
+.page-content .features,
+.page-content .form-box {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+    margin-bottom: 20px !important;
+}
+
+/* Background Gradient Animation */
+.animated-page-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 25% 75%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 75% 25%, rgba(168, 85, 247, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+    animation: backgroundShift 25s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes backgroundShift {
+    0%, 100% {
+        background: 
+            radial-gradient(circle at 25% 75%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 75% 25%, rgba(168, 85, 247, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+    }
+    33% {
+        background: 
+            radial-gradient(circle at 70% 30%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 30% 70%, rgba(168, 85, 247, 0.03) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+    }
+    66% {
+        background: 
+            radial-gradient(circle at 40% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+            radial-gradient(circle at 60% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 20% 40%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .shape {
+        transform: scale(0.7);
+    }
+    
+    .sparkle {
+        font-size: 14px;
+    }
+    
+    .particle {
+        width: 3px;
+        height: 3px;
+    }
+}

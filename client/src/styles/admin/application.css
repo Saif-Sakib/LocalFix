@@ -2,8 +2,13 @@
     padding: 2rem;
     max-width: 1400px;
     margin: 0 auto;
-    background-color: #f8fafc;
+    background: rgba(248, 250, 252, 0.8);
+    backdrop-filter: blur(10px);
     min-height: 100vh;
+    position: relative;
+    z-index: 10;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .applications-header {

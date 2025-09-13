@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import axios from "axios";
 import ViewDetailsModal from './view_details';
 import ApplyJobModal from '../worker/apply_job';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import '../../styles/common/IssueList.css';
 
 function IssueList() {
@@ -171,7 +172,8 @@ function IssueList() {
 	}
 
 	return (
-		<div className="issue-page-container">
+		<AnimatedBackground>
+			<div className="issue-page-container">
 			<div className="filters-section">
 				<div className="filters-header">
 					<h2 className="page-title">Issue Management</h2>
@@ -355,7 +357,8 @@ function IssueList() {
 				issueId={selectedIssueForApply?.ID}
 				issueTitle={selectedIssueForApply?.TITLE}
 			/>
-		</div>
+			</div>
+		</AnimatedBackground>
 	);
 }
 

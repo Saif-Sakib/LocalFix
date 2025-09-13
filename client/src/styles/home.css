@@ -9,18 +9,22 @@
 .home-container {
 	min-height: 100vh;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-	background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 50%, #f5f0ff 100%);
+	background: rgba(240, 244, 255, 0.8);
+	backdrop-filter: blur(10px);
+	position: relative;
+	z-index: 10;
 }
 
 /* Header Styles */
 .header {
-	background: rgba(255, 255, 255, 0.9);
-	-webkit-backdrop-filter: blur(10px);
-	backdrop-filter: blur(10px);
+	background: rgba(255, 255, 255, 0.95);
+	-webkit-backdrop-filter: blur(20px);
+	backdrop-filter: blur(20px);
 	border-bottom: 1px solid rgba(229, 231, 235, 0.5);
 	position: sticky;
 	top: 0;
 	z-index: 1000;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {

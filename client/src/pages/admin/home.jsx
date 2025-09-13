@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { PieChart, Pie, Cell } from "recharts";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
+import AnimatedBackground from "../../components/AnimatedBackground";
 import "../../styles/admin/home.css";
 
 function AdminHome() {
@@ -173,7 +174,8 @@ function AdminHome() {
     }
 
     return (
-        <div className="admin-home">
+        <AnimatedBackground>
+            <div className="admin-home">
             {/* Welcome Section */}
             <div className="welcome-section">
                 <div className="welcome-content">
@@ -402,7 +404,8 @@ function AdminHome() {
                     <p>Showing latest 4 activities • <span>Total applications: {stats.totalApplications}</span></p>
                 </div>
             </div>
-        </div>
+            </div>
+        </AnimatedBackground>
     );
 }
 

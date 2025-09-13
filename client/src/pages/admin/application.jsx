@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import '../../styles/admin/application.css';
 import { useAuth } from '../../context/AuthContext';
 
@@ -158,7 +159,8 @@ function Application() {
     }
 
     return (
-        <div className="applications-container">
+        <AnimatedBackground>
+            <div className="applications-container">
             {Object.keys(groupedApplications).length === 0 ? (
                 <div className="no-applications">
                     <p>No pending applications found.</p>
@@ -271,7 +273,8 @@ function Application() {
                     })}
                 </div>
             )}
-        </div>
+            </div>
+        </AnimatedBackground>
     );
 }
 
