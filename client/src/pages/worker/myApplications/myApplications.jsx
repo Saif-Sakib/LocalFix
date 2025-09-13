@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Submit_proof from './submitProof';
+import AnimatedBackground from '../../../components/AnimatedBackground';
 import '../../../styles/worker/myApplications.css';
 import axios from "axios";
 
@@ -134,7 +135,8 @@ function MyApplications() {
     }
 
     return (
-        <div className="my-applications-container">
+        <AnimatedBackground>
+            <div className="my-applications-container">
             <div className="filter-buttons">
                 <button className={`filter-button ${filter === 'all' ? 'selected' : ''}`} onClick={() => setFilter('all')}>All ({applications.length})</button>
                 <button className={`filter-button ${filter === 'applied' ? 'selected' : ''}`} onClick={() => setFilter('applied')}>Applied ({getCount('applied')})</button>
@@ -248,7 +250,8 @@ function MyApplications() {
                     issueId={selectedIssueId}
                 />
             )}
-        </div>
+            </div>
+        </AnimatedBackground>
     );
 }
 

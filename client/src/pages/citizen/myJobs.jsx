@@ -1,6 +1,11 @@
+import React from 'react';
+import AnimatedBackground from '../../components/AnimatedBackground';
+
 function MyJobs() {
     return (
-        <h1>Posted Issues and their status</h1>
+        <AnimatedBackground>
+            <h1>Posted Issues and their status</h1>
+        </AnimatedBackground>
     );
 }
 

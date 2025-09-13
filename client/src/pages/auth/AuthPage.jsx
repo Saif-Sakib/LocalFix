@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import '../../styles/common/auth.css'; // Make sure this path is correct
 
 const AuthPage = () => {
@@ -122,10 +123,11 @@ const AuthPage = () => {
     };
 
     return (
-        <div 
-            className={`container ${!isLoginView ? "signup-active" : ""}`}
-            style={{minWidth: '60vw',marginTop:'20px'}}
-        >
+        <AnimatedBackground>
+            <div 
+                className={`container ${!isLoginView ? "signup-active" : ""}`}
+                style={{minWidth: '60vw',marginTop:'20px'}}
+            >
             {/* Signup Form Container */}
             <div className="form-box register">
                 <form onSubmit={onSignup}>
@@ -250,7 +252,8 @@ const AuthPage = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </AnimatedBackground>
     );
 };
 

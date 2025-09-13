@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import AnimatedBackground from '../components/AnimatedBackground';
 import '../styles/home.css';
 
 const HomePage = () => {
@@ -32,7 +33,8 @@ const HomePage = () => {
 	};
 
 	return (
-		<div className="home-container">
+		<AnimatedBackground>
+			<div className="home-container">
 			{/* Header */}
 			<header className="header">
 				<div className="header-content">
@@ -311,7 +313,8 @@ const HomePage = () => {
 					</div>
 				</div>
 			</footer>
-		</div>
+			</div>
+		</AnimatedBackground>
 	);
 };
 

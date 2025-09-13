@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import axios from 'axios';
 import '../../styles/citizen/home.css';
 
@@ -130,7 +131,8 @@ const CitizenHome = () => {
     }
 
     return (
-        <div className="citizen-home">
+        <AnimatedBackground>
+            <div className="citizen-home">
             {/* Welcome Section */}
             <div className="welcome-section">
                 <div className="welcome-content">
@@ -275,7 +277,8 @@ const CitizenHome = () => {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </AnimatedBackground>
     );
 };
 
