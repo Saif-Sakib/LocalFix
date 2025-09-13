@@ -111,6 +111,23 @@ function PostIssue() {
 		return Object.keys(newErrors).length === 0;
 	};
 
+	const handleClearForm = () => {
+		setFormData({
+			title: "",
+			description: "",
+			category: "",
+			priority: "medium",
+			upazila: "",
+			district: "",
+			full_address: "",
+			image: null,
+		});
+		setImagePreview(null);
+		if (fileInputRef.current) fileInputRef.current.value = "";
+		setErrors({});
+		setMessage("");
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
@@ -187,7 +204,21 @@ function PostIssue() {
 
 	return (
 		<div className="issue-page">
-			<div className="hero-section">
+			{/* Animated Background Elements */}
+			<div className="background-shapes">
+				<div className="shape shape-1"></div>
+				<div className="shape shape-2"></div>
+				<div className="shape shape-3"></div>
+			</div>
+
+			{/* Sparkle Effects */}
+			<div className="sparkles">
+				<div className="sparkle sparkle-1">✨</div>
+				<div className="sparkle sparkle-2">⭐</div>
+				<div className="sparkle sparkle-3">💫</div>
+				<div className="sparkle sparkle-4">✨</div>
+				<div className="sparkle sparkle-5">⭐</div>
+				<div className="sparkle sparkle-6">💫</div>
 			</div>
 
 			<div className="issue-container">
@@ -362,19 +393,22 @@ function PostIssue() {
 						</div>
 					</div>
 
-					<button type="submit" className="submit-btn" disabled={isSubmitting}>
-						{isSubmitting ? (
-							<>
-								<span className="spinner"></span>
-								Submitting...
-							</>
-						) : (
-							'Submit Issue Report'
-						)}
-					</button>
+					<div className="form-buttons">
+						<button type="button" className="clear-btn" onClick={handleClearForm}>
+							Clear All Fields
+						</button>
+						<button type="submit" className="submit-btn" disabled={isSubmitting}>
+							{isSubmitting ? (
+								<>
+									<span className="spinner"></span>
+									Submitting...
+								</>
+							) : (
+								'Submit Issue Report'
+							)}
+						</button>
+					</div>
 				</form>
-			</div>
-			<div className="hero-section">
 			</div>
 		</div>
 
