@@ -2,7 +2,7 @@
 .profile-container {
     width: 100%;
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     position: relative;
     overflow-x: hidden;
@@ -16,9 +16,9 @@
     width: 100%;
     height: 100%;
     background: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 103, 103, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(72, 219, 251, 0.2) 0%, transparent 50%);
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
     animation: backgroundShift 15s ease-in-out infinite;
     z-index: 1;
 }
@@ -26,27 +26,27 @@
 @keyframes backgroundShift {
     0%, 100% {
         background: 
-            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(255, 103, 103, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(72, 219, 251, 0.2) 0%, transparent 50%);
+            radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
     }
     25% {
         background: 
-            radial-gradient(circle at 60% 20%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
-            radial-gradient(circle at 20% 60%, rgba(255, 103, 103, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(72, 219, 251, 0.3) 0%, transparent 50%);
+            radial-gradient(circle at 60% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 20% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.07) 0%, transparent 50%);
     }
     50% {
         background: 
-            radial-gradient(circle at 80% 60%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 40% 20%, rgba(255, 103, 103, 0.4) 0%, transparent 50%),
-            radial-gradient(circle at 20% 40%, rgba(72, 219, 251, 0.3) 0%, transparent 50%);
+            radial-gradient(circle at 80% 60%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 40% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 20% 40%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
     }
     75% {
         background: 
-            radial-gradient(circle at 40% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 60% 40%, rgba(255, 103, 103, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(72, 219, 251, 0.4) 0%, transparent 50%);
+            radial-gradient(circle at 40% 80%, rgba(99, 102, 241, 0.07) 0%, transparent 50%),
+            radial-gradient(circle at 60% 40%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
     }
 }
 
@@ -59,11 +59,11 @@
     width: 100%;
     height: 100%;
     background-image: 
-        radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.4), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.3), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(255, 255, 255, 0.5), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.3), transparent),
-        radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.4), transparent);
+        radial-gradient(2px 2px at 20px 30px, rgba(99, 102, 241, 0.3), transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(168, 85, 247, 0.2), transparent),
+        radial-gradient(1px 1px at 90px 40px, rgba(59, 130, 246, 0.3), transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(99, 102, 241, 0.2), transparent),
+        radial-gradient(2px 2px at 160px 30px, rgba(168, 85, 247, 0.3), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
     animation: particleFloat 20s linear infinite;
@@ -89,7 +89,7 @@
 .shape {
     position: absolute;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(99, 102, 241, 0.1);
     animation: shapeFloat 20s ease-in-out infinite;
 }
 
@@ -182,17 +182,17 @@
 }
 
 .wave-animation .shape-fill {
-    fill: rgba(255, 255, 255, 0.1);
+    fill: rgba(99, 102, 241, 0.1);
     animation: waveFlow 8s ease-in-out infinite;
 }
 
 @keyframes waveFlow {
     0%, 100% {
-        fill: rgba(255, 255, 255, 0.1);
+        fill: rgba(99, 102, 241, 0.1);
         transform: translateX(0px);
     }
     50% {
-        fill: rgba(255, 255, 255, 0.2);
+        fill: rgba(168, 85, 247, 0.15);
         transform: translateX(10px);
     }
 }
@@ -313,10 +313,10 @@
     width: 100%;
     height: 100%;
     background-image: 
-        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-        linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 30%, rgba(99, 102, 241, 0.04) 50%, transparent 70%);
     animation: patternFloat 25s ease-in-out infinite;
 }
 
@@ -481,23 +481,25 @@
 
 /* User Info with Typography */
 .user-info {
-    color: white;
+    color: #1f2937;
 }
 
 .user-name {
     font-size: 2.5rem;
     font-weight: 700;
     margin: 0 0 0.5rem 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     letter-spacing: -0.5px;
+    color: #111827;
 }
 
 .user-type {
     font-size: 1.1rem;
     font-weight: 500;
     margin: 0 0 0.25rem 0;
-    opacity: 0.9;
+    opacity: 0.8;
     text-transform: uppercase;
+    color: #4b5563;
     letter-spacing: 1px;
 }
 
