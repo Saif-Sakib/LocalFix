@@ -30,23 +30,11 @@
             radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
             radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
     }
-    25% {
-        background: 
-            radial-gradient(circle at 60% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 20% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.07) 0%, transparent 50%);
-    }
     50% {
         background: 
             radial-gradient(circle at 80% 60%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
             radial-gradient(circle at 40% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
             radial-gradient(circle at 20% 40%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
-    }
-    75% {
-        background: 
-            radial-gradient(circle at 40% 80%, rgba(99, 102, 241, 0.07) 0%, transparent 50%),
-            radial-gradient(circle at 60% 40%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
     }
 }
 
@@ -61,9 +49,7 @@
     background-image: 
         radial-gradient(2px 2px at 20px 30px, rgba(99, 102, 241, 0.3), transparent),
         radial-gradient(2px 2px at 40px 70px, rgba(168, 85, 247, 0.2), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(59, 130, 246, 0.3), transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(99, 102, 241, 0.2), transparent),
-        radial-gradient(2px 2px at 160px 30px, rgba(168, 85, 247, 0.3), transparent);
+        radial-gradient(1px 1px at 90px 40px, rgba(59, 130, 246, 0.3), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
     animation: particleFloat 20s linear infinite;
@@ -89,7 +75,6 @@
 .shape {
     position: absolute;
     border-radius: 50%;
-    background: rgba(99, 102, 241, 0.1);
     animation: shapeFloat 20s ease-in-out infinite;
 }
 
@@ -123,42 +108,14 @@
     animation-duration: 20s;
 }
 
-.shape-4 {
-    width: 80px;
-    height: 80px;
-    bottom: 20%;
-    left: 20%;
-    background: linear-gradient(135deg, rgba(254, 202, 87, 0.25) 0%, rgba(255, 107, 107, 0.25) 100%);
-    animation-delay: -15s;
-    animation-duration: 35s;
-}
-
-.shape-5 {
-    width: 120px;
-    height: 120px;
-    top: 70%;
-    left: 60%;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(72, 219, 251, 0.2) 100%);
-    animation-delay: -20s;
-    animation-duration: 28s;
-}
-
 @keyframes shapeFloat {
     0%, 100% {
         transform: translateY(0px) translateX(0px) scale(1);
         opacity: 0.7;
     }
-    25% {
-        transform: translateY(-30px) translateX(20px) scale(1.1);
-        opacity: 0.9;
-    }
     50% {
         transform: translateY(-20px) translateX(-15px) scale(0.9);
         opacity: 0.6;
-    }
-    75% {
-        transform: translateY(-40px) translateX(30px) scale(1.05);
-        opacity: 0.8;
     }
 }
 
@@ -236,47 +193,18 @@
     animation-duration: 7s;
 }
 
-.sparkle-4 {
-    top: 65%;
-    right: 30%;
-    animation-delay: -6s;
-    animation-duration: 9s;
-}
-
-.sparkle-5 {
-    bottom: 30%;
-    left: 30%;
-    animation-delay: -8s;
-    animation-duration: 6s;
-}
-
-.sparkle-6 {
-    top: 35%;
-    right: 15%;
-    animation-delay: -10s;
-    animation-duration: 11s;
-}
-
 @keyframes sparkleFloat {
     0%, 100% {
         transform: translateY(0px) scale(1) rotate(0deg);
         opacity: 0.3;
     }
-    25% {
-        transform: translateY(-20px) scale(1.2) rotate(90deg);
-        opacity: 0.8;
-    }
     50% {
         transform: translateY(-10px) scale(0.8) rotate(180deg);
         opacity: 1;
     }
-    75% {
-        transform: translateY(-30px) scale(1.1) rotate(270deg);
-        opacity: 0.6;
-    }
 }
 
-/* Hero Section with Enhanced Animated Background */
+/* Hero Section */
 .profile-hero {
     position: relative;
     padding: 4rem 2rem 2rem;
@@ -313,45 +241,18 @@
     width: 100%;
     height: 100%;
     background-image: 
-        radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
-        linear-gradient(45deg, transparent 30%, rgba(99, 102, 241, 0.04) 50%, transparent 70%);
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
     animation: patternFloat 25s ease-in-out infinite;
 }
 
 @keyframes patternFloat {
     0%, 100% { 
         transform: translateY(0px) rotate(0deg) scale(1);
-        background-image: 
-            radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-            linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
-    }
-    25% { 
-        transform: translateY(-15px) rotate(1deg) scale(1.02);
-        background-image: 
-            radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-            radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-            linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.08) 50%, transparent 70%);
     }
     50% { 
         transform: translateY(-10px) rotate(-1deg) scale(1.01);
-        background-image: 
-            radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.18) 0%, transparent 50%),
-            radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-            linear-gradient(225deg, transparent 30%, rgba(255, 255, 255, 0.06) 50%, transparent 70%);
-    }
-    75% { 
-        transform: translateY(-5px) rotate(2deg) scale(0.98);
-        background-image: 
-            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.14) 0%, transparent 50%),
-            radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.11) 0%, transparent 50%),
-            linear-gradient(315deg, transparent 30%, rgba(255, 255, 255, 0.07) 50%, transparent 70%);
     }
 }
 
@@ -366,7 +267,7 @@
     width: 100%;
 }
 
-/* Enhanced Avatar Section with More Animations */
+/* Avatar Section - FIXED */
 .profile-avatar-section {
     display: flex;
     flex-direction: column;
@@ -376,55 +277,105 @@
 
 .avatar-container {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 1.5rem;
 }
 
+/* Avatar Image - MAIN FIX */
+.avatar-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    display: block; /* Ensure it displays */
+    position: relative;
+    z-index: 10;
+}
+
+.avatar-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+}
+
+/* Avatar Placeholder - FIXED */
 .avatar-placeholder {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b 0%, #feca57 25%, #48dbfb 50%, #ff9ff3 75%, #54a0ff 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
     font-size: 48px;
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.25),
-        0 0 0 4px rgba(255, 255, 255, 0.2),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.3),
-        0 0 60px rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
-    animation: avatarPulse 4s ease-in-out infinite, avatarGlow 6s ease-in-out infinite alternate;
-    background-size: 200% 200%;
+    position: relative;
+    z-index: 10;
 }
 
-@keyframes avatarPulse {
-    0%, 100% { transform: scale(1); }
-    25% { transform: scale(1.05) rotate(2deg); }
-    50% { transform: scale(1.08) rotate(-1deg); }
-    75% { transform: scale(1.03) rotate(1deg); }
+.avatar-placeholder:hover {
+    transform: scale(1.05);
 }
 
-@keyframes avatarGlow {
-    0% { 
-        background-position: 0% 50%;
-        box-shadow: 
-            0 25px 50px rgba(0, 0, 0, 0.25),
-            0 0 0 4px rgba(255, 255, 255, 0.2),
-            inset 0 0 0 2px rgba(255, 255, 255, 0.3),
-            0 0 60px rgba(255, 255, 255, 0.2);
-    }
-    100% { 
-        background-position: 100% 50%;
-        box-shadow: 
-            0 30px 60px rgba(0, 0, 0, 0.3),
-            0 0 0 6px rgba(255, 255, 255, 0.3),
-            inset 0 0 0 2px rgba(255, 255, 255, 0.4),
-            0 0 80px rgba(255, 255, 255, 0.4);
-    }
+/* Avatar Controls */
+.avatar-controls {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    display: flex;
+    gap: 8px;
+    z-index: 20; /* Higher than avatar */
 }
 
+.avatar-upload-btn,
+.avatar-remove-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-upload-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.avatar-upload-btn:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: scale(1.1);
+}
+
+.avatar-remove-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+}
+
+.avatar-remove-btn:hover {
+    background: linear-gradient(135deg, #ee5a52 0%, #ff6b6b 100%);
+    transform: scale(1.1);
+}
+
+.avatar-upload-btn:disabled,
+.avatar-remove-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Avatar Ring Effect */
 .avatar-ring {
     position: absolute;
     top: -12px;
@@ -433,9 +384,9 @@
     bottom: -12px;
     border: 3px solid transparent;
     border-radius: 50%;
-    background: linear-gradient(45deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.4));
-    background-clip: border-box;
-    animation: ringRotate 8s linear infinite, ringPulse 3s ease-in-out infinite;
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+    animation: ringRotate 8s linear infinite;
+    z-index: 5;
 }
 
 @keyframes ringRotate {
@@ -443,16 +394,11 @@
     100% { transform: rotate(360deg); }
 }
 
-@keyframes ringPulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.1); }
-}
-
 .status-badge {
     position: absolute;
     bottom: 5px;
     right: 5px;
-    z-index: 10;
+    z-index: 15;
 }
 
 .status {
@@ -479,7 +425,7 @@
     color: white;
 }
 
-/* User Info with Typography */
+/* User Info */
 .user-info {
     color: #1f2937;
 }
@@ -526,22 +472,6 @@
     letter-spacing: 0.5px;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
-}
-
-.modern-btn:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.modern-btn:hover:before {
-    left: 100%;
 }
 
 .edit-btn {
@@ -584,7 +514,7 @@
     gap: 12px;
 }
 
-/* Alert Messages with Modern Design */
+/* Alert Messages */
 .alert {
     display: flex;
     align-items: center;
@@ -635,7 +565,7 @@
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
-    z-index: 100; /* Ensure content is above all background elements */
+    z-index: 100;
 }
 
 .content-grid {
@@ -895,13 +825,14 @@
     align-items: center;
     justify-content: center;
     height: 100vh;
-    color: white;
+    color: #374151;
     text-align: center;
 }
 
 .loading-spinner i {
     font-size: 48px;
     margin-bottom: 16px;
+    color: #667eea;
 }
 
 .loading-spinner p {
@@ -924,10 +855,24 @@
         font-size: 2rem;
     }
     
+    .avatar-image,
     .avatar-placeholder {
         width: 100px;
         height: 100px;
         font-size: 40px;
+    }
+    
+    .avatar-upload-btn,
+    .avatar-remove-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+    
+    .avatar-controls {
+        bottom: -8px;
+        right: -8px;
+        gap: 6px;
     }
     
     .profile-content {
@@ -958,3 +903,5 @@
     
     .security-info {
         justify-content: center;
+    }
+}

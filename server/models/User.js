@@ -1,11 +1,13 @@
 // server/models/User.js
 const oracledb = require('oracledb');
 const bcrypt = require('bcryptjs');
+const fs = require('fs').promises;
+const path = require('path');
 const { executeQuery } = require('../config/database');
 
 class User {
     static async findByEmail(email) {
-        const sql = `SELECT user_id, name, email, phone, address, hashed_pass, user_type, status, created_at 
+        const sql = `SELECT user_id, name, email, phone, address, hashed_pass, user_type, status, img_url, created_at 
                      FROM users WHERE email = :email`;
         
         const result = await executeQuery(sql, [email]);
@@ -27,6 +29,7 @@ class User {
             password: user.HASHED_PASS, // Map hashed_pass to password for compatibility
             user_type: user.USER_TYPE,
             status: user.STATUS,
+            img_url: user.IMG_URL,
             created_at: user.CREATED_AT
         };
     }
@@ -67,7 +70,7 @@ class User {
     }
 
     static async findById(userId) {
-        const sql = `SELECT user_id, name, email, phone, address, user_type, status, created_at 
+        const sql = `SELECT user_id, name, email, phone, address, user_type, status, img_url, created_at 
                      FROM users WHERE user_id = :user_id`;
         
         const result = await executeQuery(sql, [userId]);
@@ -87,6 +90,7 @@ class User {
             address: user.ADDRESS,
             user_type: user.USER_TYPE,
             status: user.STATUS,
+            img_url: user.IMG_URL,
             created_at: user.CREATED_AT
         };
     }
@@ -116,6 +120,10 @@ class User {
             fields.push('status = :status');
             binds.status = updateData.status;
         }
+        if (updateData.img_url !== undefined) {
+            fields.push('img_url = :img_url');
+            binds.img_url = updateData.img_url;
+        }
         if (updateData.password) {
             const hashedPassword = await bcrypt.hash(updateData.password, 10);
             fields.push('hashed_pass = :hashed_pass');
@@ -139,6 +147,12 @@ class User {
     }
 
     static async delete(userId) {
+        // First get user data to delete associated files
+        const user = await this.findById(userId);
+        if (user && user.img_url) {
+            await this.deleteProfileImage(user.img_url);
+        }
+        
         const sql = `DELETE FROM users WHERE user_id = :user_id`;
         
         const result = await executeQuery(sql, [userId]);
@@ -148,6 +162,132 @@ class User {
         }
         
         return result.rowsAffected > 0;
+    }
+
+    // NEW: Get profile method
+    static async getProfile(userId) {
+        return await this.findById(userId);
+    }
+
+    // NEW: Update profile method with validation
+    static async updateProfile(userId, updateData) {
+        // Validate input
+        if (!updateData || Object.keys(updateData).length === 0) {
+            throw new Error('At least one field is required for update');
+        }
+        
+        // Prepare update data (only include fields that are provided)
+        const validatedData = {};
+        
+        if (updateData.name && updateData.name.trim()) {
+            if (updateData.name.trim().length < 2) {
+                throw new Error('Name must be at least 2 characters long');
+            }
+            validatedData.name = updateData.name.trim();
+        }
+        
+        if (updateData.phone && updateData.phone.trim()) {
+            // Basic phone validation (adjust regex as needed for your format)
+            const phoneRegex = /^[\d\s\-\+\(\)]{10,15}$/;
+            if (!phoneRegex.test(updateData.phone.trim())) {
+                throw new Error('Please enter a valid phone number');
+            }
+            validatedData.phone = updateData.phone.trim();
+        }
+        
+        if (updateData.address && updateData.address.trim()) {
+            validatedData.address = updateData.address.trim();
+        }
+        
+        if (updateData.password && updateData.password.trim()) {
+            if (updateData.password.length < 8) {
+                throw new Error('Password must be at least 8 characters long');
+            }
+            validatedData.password = updateData.password;
+        }
+
+        if (updateData.img_url !== undefined) {
+            validatedData.img_url = updateData.img_url;
+        }
+        
+        // Update user in database
+        const updated = await this.update(userId, validatedData);
+        
+        if (!updated) {
+            throw new Error('User not found or no changes made');
+        }
+        
+        // Return updated user data
+        return await this.findById(userId);
+    }
+
+    // NEW: Update profile image method
+    static async updateProfileImage(userId, newImageUrl) {
+        // Get current user data to delete old image
+        const user = await this.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        
+        // Delete old image if exists
+        if (user.img_url) {
+            await this.deleteProfileImage(user.img_url);
+        }
+        
+        // Update with new image URL
+        const updated = await this.update(userId, { img_url: newImageUrl });
+        
+        if (!updated) {
+            throw new Error('Failed to update profile image');
+        }
+        
+        return await this.findById(userId);
+    }
+
+    // NEW: Delete profile image method
+    static async deleteProfileImage(imageUrl) {
+        if (!imageUrl) return;
+        
+        try {
+            // Extract filename from URL
+            const urlParts = imageUrl.split('/');
+            const filename = urlParts[urlParts.length - 1];
+            const imagePath = path.join(__dirname, '../../uploads/profiles', filename);
+            
+            // Check if file exists and delete it
+            try {
+                await fs.access(imagePath);
+                await fs.unlink(imagePath);
+                console.log(`Deleted profile image: ${imagePath}`);
+            } catch (fileError) {
+                // File doesn't exist or can't be deleted, log but don't throw
+                console.log(`Could not delete profile image: ${imagePath}`, fileError.message);
+            }
+        } catch (error) {
+            console.error('Error deleting profile image:', error);
+        }
+    }
+
+    // NEW: Remove profile image method (sets img_url to null)
+    static async removeProfileImage(userId) {
+        const user = await this.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        
+        // Delete the physical file
+        if (user.img_url) {
+            await this.deleteProfileImage(user.img_url);
+        }
+        
+        // Update database to remove image URL
+        const updated = await this.update(userId, { img_url: null });
+        
+        if (!updated) {
+            throw new Error('Failed to remove profile image');
+        }
+        
+        return await this.findById(userId);
     }
 
     static async verifyPassword(plainPassword, hashedPassword) {
@@ -160,7 +300,7 @@ class User {
     }
 
     static async getAllUsers(limit = 100, offset = 0) {
-        const sql = `SELECT user_id, name, email, phone, address, user_type, status, created_at 
+        const sql = `SELECT user_id, name, email, phone, address, user_type, status, img_url, created_at 
                      FROM users 
                      ORDER BY created_at DESC 
                      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`;
@@ -179,12 +319,13 @@ class User {
             address: user.ADDRESS,
             user_type: user.USER_TYPE,
             status: user.STATUS,
+            img_url: user.IMG_URL,
             created_at: user.CREATED_AT
         }));
     }
 
     static async searchUsers(searchTerm) {
-        const sql = `SELECT user_id, name, email, phone, address, user_type, status, created_at 
+        const sql = `SELECT user_id, name, email, phone, address, user_type, status, img_url, created_at 
                      FROM users 
                      WHERE LOWER(name) LIKE LOWER(:searchTerm) 
                         OR LOWER(email) LIKE LOWER(:searchTerm)
@@ -205,6 +346,7 @@ class User {
             address: user.ADDRESS,
             user_type: user.USER_TYPE,
             status: user.STATUS,
+            img_url: user.IMG_URL,
             created_at: user.CREATED_AT
         }));
     }

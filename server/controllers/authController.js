@@ -165,7 +165,8 @@ const login = async (req, res) => {
                 email: user.email,
                 phone: user.phone,
                 address: user.address,
-                user_type: user.user_type
+                user_type: user.user_type,
+                img_url: user.img_url
             }
             // Note: No token in response body - it's now in secure cookie
         });
@@ -179,7 +180,7 @@ const login = async (req, res) => {
     }
 };
 
-// New logout endpoint to clear cookies
+// Logout endpoint to clear cookies
 const logout = async (req, res) => {
     try {
         // Clear the authentication cookie
@@ -200,7 +201,7 @@ const logout = async (req, res) => {
 
 const getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.user_id);
+        const user = await User.getProfile(req.user.user_id);
         if (!user) {
             return res.status(404).json({
                 success: false,
@@ -218,6 +219,7 @@ const getProfile = async (req, res) => {
                 address: user.address,
                 user_type: user.user_type,
                 status: user.status,
+                img_url: user.img_url,
                 created_at: user.created_at
             }
         });
@@ -234,67 +236,9 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const userId = req.user.user_id;
-        const { name, phone, address, password } = req.body;
+        const updateData = req.body;
         
-        // Validate input
-        if (!name && !phone && !address && !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'At least one field is required for update'
-            });
-        }
-        
-        // Prepare update data (only include fields that are provided)
-        const updateData = {};
-        
-        if (name && name.trim()) {
-            if (name.trim().length < 2) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Name must be at least 2 characters long'
-                });
-            }
-            updateData.name = name.trim();
-        }
-        
-        if (phone && phone.trim()) {
-            // Basic phone validation (adjust regex as needed for your format)
-            const phoneRegex = /^[\d\s\-\+\(\)]{10,15}$/;
-            if (!phoneRegex.test(phone.trim())) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please enter a valid phone number'
-                });
-            }
-            updateData.phone = phone.trim();
-        }
-        
-        if (address && address.trim()) {
-            updateData.address = address.trim();
-        }
-        
-        if (password && password.trim()) {
-            if (password.length < 8) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Password must be at least 8 characters long'
-                });
-            }
-            updateData.password = password;
-        }
-        
-        // Update user in database
-        const updated = await User.update(userId, updateData);
-        
-        if (!updated) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found or no changes made'
-            });
-        }
-        
-        // Fetch updated user data to return
-        const updatedUser = await User.findById(userId);
+        const updatedUser = await User.updateProfile(userId, updateData);
         
         res.json({
             success: true,
@@ -307,14 +251,90 @@ const updateProfile = async (req, res) => {
                 address: updatedUser.address,
                 user_type: updatedUser.user_type,
                 status: updatedUser.status,
+                img_url: updatedUser.img_url,
                 created_at: updatedUser.created_at
             }
         });
     } catch (error) {
         console.error('Update profile error:', error);
+        const statusCode = error.message.includes('not found') ? 404 : 400;
+        res.status(statusCode).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Update profile image
+const updateProfileImage = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No image file provided'
+            });
+        }
+        
+        // Build the full image URL
+        const serverUrl = process.env.SERVER_URL || `http://localhost:${process.env.PORT || 5000}`;
+        const imageUrl = `${serverUrl}/api/uploads/image/profiles/${req.file.filename}`;
+        
+        const updatedUser = await User.updateProfileImage(userId, imageUrl);
+        
+        res.json({
+            success: true,
+            message: 'Profile image updated successfully',
+            user: {
+                user_id: updatedUser.user_id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phone: updatedUser.phone,
+                address: updatedUser.address,
+                user_type: updatedUser.user_type,
+                status: updatedUser.status,
+                img_url: updatedUser.img_url,
+                created_at: updatedUser.created_at
+            },
+            imageUrl: updatedUser.img_url
+        });
+    } catch (error) {
+        console.error('Update profile image error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to update profile'
+            message: error.message || 'Failed to update profile image'
+        });
+    }
+};
+
+// Remove profile image
+const removeProfileImage = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        
+        const updatedUser = await User.removeProfileImage(userId);
+        
+        res.json({
+            success: true,
+            message: 'Profile image removed successfully',
+            user: {
+                user_id: updatedUser.user_id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                phone: updatedUser.phone,
+                address: updatedUser.address,
+                user_type: updatedUser.user_type,
+                status: updatedUser.status,
+                img_url: updatedUser.img_url,
+                created_at: updatedUser.created_at
+            }
+        });
+    } catch (error) {
+        console.error('Remove profile image error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to remove profile image'
         });
     }
 };
@@ -350,5 +370,7 @@ module.exports = {
     logout,
     getProfile,
     updateProfile,
+    updateProfileImage,
+    removeProfileImage,
     deleteAccount
 };

@@ -7,6 +7,10 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [mapboxToken, setMapboxToken] = useState(null);
+	const [imageError, setImageError] = useState(false);
+
+	// Define API_BASE_URL
+	const API_BASE_URL = 'http://localhost:5000';
 
 	useEffect(() => {
 		if (isOpen && issueId) {
@@ -78,6 +82,50 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 		}
 	};
 
+	/**
+	 * Build the correct image URL using the API endpoint
+	 * @param {string} imageUrl - The image URL from database (could be filename or path)
+	 * @returns {string} Full API URL for the image
+	 */
+	const buildImageUrl = (imageUrl) => {
+		if (!imageUrl) return null;
+		
+		// If it's already a full URL, return as is
+		if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+			return imageUrl;
+		}
+		
+		// If it starts with /api/uploads, it's already the API path
+		if (imageUrl.startsWith('/api/uploads/image/')) {
+			return `${API_BASE_URL}${imageUrl}`;
+		}
+		
+		// If it's a legacy path like /uploads/issue_img/filename.jpg
+		if (imageUrl.startsWith('/uploads/')) {
+			const pathParts = imageUrl.split('/');
+			if (pathParts.length >= 4) {
+				const folder = pathParts[2]; // issue_img, profiles, proofs
+				const filename = pathParts[3]; // actual filename
+				return `${API_BASE_URL}/api/uploads/image/${folder}/${filename}`;
+			}
+		}
+		
+		// If it's just a filename, assume it's in issue_img folder
+		if (!imageUrl.includes('/')) {
+			return `${API_BASE_URL}/api/uploads/image/issue_img/${imageUrl}`;
+		}
+		
+		// Fallback: assume it's a path that needs to be converted to API format
+		const pathParts = imageUrl.replace(/^\//, '').split('/');
+		if (pathParts.length >= 2) {
+			const folder = pathParts[pathParts.length - 2];
+			const filename = pathParts[pathParts.length - 1];
+			return `${API_BASE_URL}/api/uploads/image/${folder}/${filename}`;
+		}
+		
+		return null;
+	};
+
 	const getPriorityClass = (priority) => {
 		switch (priority?.toLowerCase()) {
 			case 'urgent':
@@ -102,9 +150,51 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 	};
 
 	const handleMapClick = (latitude, longitude) => {
-		
+		// Open Mapbox in 3D view
+		const lat = latitude || 23.8103;
+		const lng = longitude || 90.4125;
+		const mapboxUrl = `https://www.mapbox.com/map-feedback/#/${lng}/${lat}/15`;
+		window.open(mapboxUrl, '_blank');
 	};
 
+	const handleImageError = () => {
+		setImageError(true);
+	};
+
+	const handleImageLoad = () => {
+		setImageError(false);
+	};
+
+	// Prevent body scroll when modal is open
+	useEffect(() => {
+		if (isOpen) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = 'unset';
+		}
+
+		// Cleanup on unmount
+		return () => {
+			document.body.style.overflow = 'unset';
+		};
+	}, [isOpen]);
+
+	// Handle ESC key to close modal
+	useEffect(() => {
+		const handleEscKey = (event) => {
+			if (event.key === 'Escape' && isOpen) {
+				onClose();
+			}
+		};
+
+		if (isOpen) {
+			document.addEventListener('keydown', handleEscKey);
+		}
+
+		return () => {
+			document.removeEventListener('keydown', handleEscKey);
+		};
+	}, [isOpen, onClose]);
 
 	if (!isOpen) return null;
 
@@ -113,7 +203,7 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 			<div className="modal-container" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
 					<h2 className="modal-title">Issue Details</h2>
-					<button className="modal-close" onClick={onClose}>
+					<button className="modal-close" onClick={onClose} aria-label="Close modal">
 						&times;
 					</button>
 				</div>
@@ -290,14 +380,22 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 										<h3>Issue Image</h3>
 									</div>
 									<div className="image-container">
-										<img 
-											src={`http://localhost:5000${issue.IMAGE_URL}`}
-											alt="Issue"
-											className="issue-image"
-											onError={(e) => {
-												e.target.style.display = 'none';
-											}}
-										/>
+										{!imageError ? (
+											<img 
+												src={buildImageUrl(issue.IMAGE_URL)}
+												alt="Issue"
+												className="issue-image"
+												onError={handleImageError}
+												onLoad={handleImageLoad}
+												loading="lazy"
+											/>
+										) : (
+											<div className="image-error-placeholder">
+												<div className="error-icon">📷</div>
+												<p>Image could not be loaded</p>
+												<small>Path: {issue.IMAGE_URL}</small>
+											</div>
+										)}
 									</div>
 								</div>
 							)}

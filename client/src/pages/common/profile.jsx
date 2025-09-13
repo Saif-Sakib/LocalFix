@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import '../../styles/common/profile.css';
@@ -7,8 +7,10 @@ function Profile() {
     const { user, refreshUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imageUploading, setImageUploading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    const fileInputRef = useRef(null);
     
     // Initialize profile data from AuthContext user or with defaults
     const [profileData, setProfileData] = useState({
@@ -19,11 +21,41 @@ function Profile() {
         address: '',
         password: '',
         userType: '',
-        status: 'Active'
+        status: 'Active',
+        imgUrl: ''
     });
 
     // Original data to revert changes on cancel
     const [originalData, setOriginalData] = useState({});
+
+    // Helper function to get the correct image URL - Fixed for upload routes
+    // Fixed getImageUrl function for profile.jsx
+const getImageUrl = (imgUrl) => {
+    if (!imgUrl) return '';
+    
+    // If it's already a full URL, use it as is
+    if (imgUrl.startsWith('http://') || imgUrl.startsWith('https://')) {
+        return imgUrl;
+    }
+    
+    // Get the server URL - make sure this matches your backend
+    const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    // Extract filename from path if it contains directory separators
+    const filename = imgUrl.includes('/') ? imgUrl.split('/').pop() : imgUrl;
+    
+    // Use the API endpoint that matches your uploadRoutes.js structure
+    // This corresponds to: router.get('/image/:folder/:filename', fileController.getImage);
+    const apiUrl = `${serverUrl}/api/uploads/image/profiles/${filename}`;
+    
+    console.log('Image URL construction:', {
+        original: imgUrl,
+        filename: filename,
+        constructed: apiUrl
+    });
+    
+    return apiUrl;
+};
 
     // Update profile data when user changes (from AuthContext)
     useEffect(() => {
@@ -36,7 +68,8 @@ function Profile() {
                 address: user.address || '',
                 password: '', // Never populate password field
                 userType: user.user_type || '',
-                status: user.status || 'Active'
+                status: user.status || 'Active',
+                imgUrl: user.img_url || ''
             };
             setProfileData(userData);
             setOriginalData(userData);
@@ -62,7 +95,8 @@ function Profile() {
                     address: userData.address || '',
                     password: '', // Never populate password field
                     userType: userData.user_type || '',
-                    status: userData.status || 'Active'
+                    status: userData.status || 'Active',
+                    imgUrl: userData.img_url || ''
                 };
                 
                 setProfileData(formattedData);
@@ -75,6 +109,89 @@ function Profile() {
             setError(error.response?.data?.message || 'Failed to fetch profile data');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Handle profile image upload
+    const handleImageUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            setError('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image size must be less than 5MB');
+            return;
+        }
+
+        try {
+            setImageUploading(true);
+            setError(null);
+            setSuccess(null);
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const response = await axios.post('/api/auth/profile/image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.data.success) {
+                setSuccess('Profile picture updated successfully');
+                // Update the profile data with the new image URL
+                setProfileData(prev => ({ 
+                    ...prev, 
+                    imgUrl: response.data.user.img_url || response.data.fileUrl 
+                }));
+                await refreshUser();
+            } else {
+                setError(response.data.message || 'Failed to upload image');
+            }
+        } catch (error) {
+            console.error('Image upload error:', error);
+            setError(error.response?.data?.message || 'Failed to upload image');
+        } finally {
+            setImageUploading(false);
+            // Clear the file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    // Handle profile image removal
+    const handleImageRemove = async () => {
+        if (!profileData.imgUrl) return;
+
+        if (!window.confirm('Are you sure you want to remove your profile picture?')) return;
+
+        try {
+            setImageUploading(true);
+            setError(null);
+            setSuccess(null);
+
+            const response = await axios.delete('/api/auth/profile/image');
+
+            if (response.data.success) {
+                setSuccess('Profile picture removed successfully');
+                setProfileData(prev => ({ ...prev, imgUrl: '' }));
+                await refreshUser();
+            } else {
+                setError(response.data.message || 'Failed to remove image');
+            }
+        } catch (error) {
+            console.error('Image removal error:', error);
+            setError(error.response?.data?.message || 'Failed to remove image');
+        } finally {
+            setImageUploading(false);
         }
     };
 
@@ -102,11 +219,19 @@ function Profile() {
             if (response.data.success) {
                 setSuccess('Profile updated successfully');
                 
+                // Update local state with returned data
+                const userData = response.data.user;
+                setProfileData(prev => ({
+                    ...prev,
+                    name: userData.name,
+                    phone: userData.phone,
+                    address: userData.address,
+                    password: '', // Clear password field
+                    imgUrl: userData.img_url || prev.imgUrl
+                }));
+                
                 // Refresh the user data in AuthContext
                 await refreshUser();
-                
-                // Clear password field after successful update
-                setProfileData(prev => ({ ...prev, password: '' }));
                 
                 return { success: true };
             } else {
@@ -208,6 +333,9 @@ function Profile() {
         );
     }
 
+    // Get the correct image URL for display - FIXED
+    const displayImageUrl = getImageUrl(profileData.imgUrl);
+
     return (
         <div className="profile-container">
             {/* Animated Background Elements */}
@@ -215,8 +343,6 @@ function Profile() {
                 <div className="shape shape-1"></div>
                 <div className="shape shape-2"></div>
                 <div className="shape shape-3"></div>
-                <div className="shape shape-4"></div>
-                <div className="shape shape-5"></div>
             </div>
             
             {/* Sparkle Effects */}
@@ -224,9 +350,6 @@ function Profile() {
                 <div className="sparkle sparkle-1">✨</div>
                 <div className="sparkle sparkle-2">⭐</div>
                 <div className="sparkle sparkle-3">✨</div>
-                <div className="sparkle sparkle-4">⭐</div>
-                <div className="sparkle sparkle-5">✨</div>
-                <div className="sparkle sparkle-6">⭐</div>
             </div>
             
             <div className="wave-animation">
@@ -246,10 +369,65 @@ function Profile() {
                 <div className="hero-content">
                     <div className="profile-avatar-section">
                         <div className="avatar-container">
-                            <div className="avatar-placeholder">
+                            {/* FIXED: Simplified avatar display logic */}
+                            {displayImageUrl ? (
+                                <img 
+                                    src={displayImageUrl} 
+                                    alt="Profile" 
+                                    className="avatar-image"
+                                    onError={(e) => {
+                                        console.error('Image failed to load:', displayImageUrl);
+                                        e.target.style.display = 'none';
+                                        const placeholder = e.target.parentNode.querySelector('.avatar-placeholder');
+                                        if (placeholder) {
+                                            placeholder.style.display = 'flex';
+                                        }
+                                    }}
+                                    onLoad={() => {
+                                        console.log('Image loaded successfully:', displayImageUrl);
+                                    }}
+                                />
+                            ) : null}
+                            
+                            {/* Show placeholder when no image or image fails to load */}
+                            <div 
+                                className="avatar-placeholder" 
+                                style={{ display: displayImageUrl ? 'none' : 'flex' }}
+                            >
                                 <i className="bx bx-user"></i>
                             </div>
+                            
                             <div className="avatar-ring"></div>
+                            
+                            {/* Avatar Upload Controls */}
+                            <div className="avatar-controls">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleImageUpload}
+                                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                    style={{ display: 'none' }}
+                                />
+                                <button
+                                    className="avatar-upload-btn"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={imageUploading}
+                                    title="Upload profile picture"
+                                >
+                                    <i className={`bx ${imageUploading ? 'bx-loader-alt bx-spin' : 'bx-camera'}`}></i>
+                                </button>
+                                {displayImageUrl && (
+                                    <button
+                                        className="avatar-remove-btn"
+                                        onClick={handleImageRemove}
+                                        disabled={imageUploading}
+                                        title="Remove profile picture"
+                                    >
+                                        <i className="bx bx-trash"></i>
+                                    </button>
+                                )}
+                            </div>
+                            
                             <div className="status-badge">
                                 <span className={`status ${profileData.status.toLowerCase()}`}>
                                     <i className="bx bx-check-circle"></i>

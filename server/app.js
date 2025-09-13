@@ -2,21 +2,27 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const cookieParser = require('cookie-parser'); // Essential for cookie-based auth
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Security middleware - Updated to allow images through API only
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false
+}));
 
 // CRITICAL: Cookie parser must come before routes that use cookies
 app.use(cookieParser());
 
-// CORS configuration - credentials: true is ESSENTIAL for cookies to work
+// CORS configuration - Enhanced for image requests
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    credentials: true // This allows cookies to be sent cross-origin
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie']
 }));
 
 // Rate limiting
@@ -30,8 +36,8 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files
-app.use('/uploads', express.static('uploads'));
+// REMOVED: Static file serving - All files now served through API only
+// This ensures proper authentication, logging, and security controls
 
 // Basic route
 app.get('/', (req, res) => {
@@ -42,7 +48,7 @@ app.get('/', (req, res) => {
     });
 });
 
-// API Routes
+// API Routes - Upload routes first for file operations
 app.use('/api/uploads', require('./routes/uploadRoutes'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/issues', require('./routes/issueRoutes'));
