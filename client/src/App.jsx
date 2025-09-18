@@ -8,6 +8,7 @@ import AuthPage from './pages/auth/AuthPage';
 import AdminDashboard from './pages/admin/dashboard'
 import CitizenDashboard from './pages/citizen/dashboard';
 import WorkerDashboard from './pages/worker/dashboard';
+import Forgot_password from './pages/auth/forgot_password';
 import './index.css';
 
 // Protected Route Component
@@ -105,6 +106,8 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+
+            <Route path="/forgot-password" element={<Forgot_password />} />
             
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
