@@ -19,16 +19,20 @@ const poolConfig = {
     poolMin: 2,
     poolMax: 10,
     poolIncrement: 1,
-    poolTimeout: 300
+    poolTimeout: 300,            // seconds to free idle connections
+    queueTimeout: 5000,          // ms to wait for a free connection before timing out
+    stmtCacheSize: 60,           // per-connection statement cache (default is 30)
+    poolAlias: 'default'         // make the pool explicit for clarity
 };
 
 async function initializeDatabase() {
     try {
         await oracledb.createPool(poolConfig);
         console.log('✅ Oracle connection pool created successfully');
-        
-        // Test connection
-        const connection = await oracledb.getConnection();
+
+        // Test connection (explicitly from the pool)
+        const pool = oracledb.getPool('default');
+        const connection = await pool.getConnection();
         const result = await connection.execute(`SELECT 'Database Connected!' FROM DUAL`);
         console.log('✅', result.rows[0][0]);
         await connection.close();
@@ -41,8 +45,23 @@ async function initializeDatabase() {
 
 async function closeDatabase() {
     try {
-        await oracledb.getPool().close(10);
-        console.log('Database connection pool closed');
+        let pool;
+        try {
+            pool = oracledb.getPool('default');
+        } catch (_) {
+            try {
+                // fallback to the only pool if alias wasn't used
+                pool = oracledb.getPool();
+            } catch (__) {
+                pool = null;
+            }
+        }
+        if (pool) {
+            await pool.close(10);
+            console.log('Database connection pool closed');
+        } else {
+            console.log('No database pool to close');
+        }
     } catch (error) {
         console.error('Error closing database:', error);
     }
@@ -51,7 +70,8 @@ async function closeDatabase() {
 async function executeQuery(sql, binds = [], options = {}) {
     let connection;
     try {
-        connection = await oracledb.getConnection();
+        // Always acquire from our pool
+        connection = await oracledb.getPool('default').getConnection();
 
         const defaultOptions = {
             outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -64,8 +84,8 @@ async function executeQuery(sql, binds = [], options = {}) {
         // Detect query type
         const queryType = sql.trim().split(/\s+/)[0].toUpperCase();
 
-        // For DML statements (INSERT, UPDATE, DELETE), force autoCommit = true
-        if (["INSERT", "UPDATE", "DELETE"].includes(queryType)) {
+        // For DML statements (INSERT, UPDATE, DELETE, MERGE), force autoCommit = true
+        if (["INSERT", "UPDATE", "DELETE", "MERGE"].includes(queryType)) {
             executeOptions.autoCommit = true;
         }
 
@@ -79,7 +99,9 @@ async function executeQuery(sql, binds = [], options = {}) {
             outBinds: result.outBinds
         };
     } catch (error) {
-        console.error("Database query error:", error);
+        // Log a safe preview for troubleshooting
+        const sqlPreview = (typeof sql === 'string') ? sql.slice(0, 200) : '[non-string-sql]';
+        console.error("Database query error:", error, { sqlPreview, binds: sanitizeBindsForLogging(binds) });
         return {
             success: false,
             error: error.message,
@@ -96,7 +118,7 @@ async function executeQuery(sql, binds = [], options = {}) {
 async function executeMultipleQueries(queries) {
     let connection;
     try {
-        connection = await oracledb.getConnection();
+        connection = await oracledb.getPool('default').getConnection();
         const results = [];
         
         // Start transaction

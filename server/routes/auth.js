@@ -1,7 +1,7 @@
 // server/routes/auth.js
 const express = require('express');
 const router = express.Router();
-const { register, login, logout, getProfile, updateProfile, updateProfileImage, removeProfileImage, deleteAccount } = require('../controllers/authController');
+const { register, login, logout, getProfile, updateProfile, updateProfileImage, removeProfileImage, deleteAccount, refreshToken } = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/auth');
 const { registerValidator, loginValidator } = require('../middleware/validators');
 const uploadService = require('../services/uploadService');
@@ -10,6 +10,7 @@ const uploadService = require('../services/uploadService');
 router.post('/register', registerValidator, register);
 router.post('/login', loginValidator, login);
 router.post('/logout', logout);
+router.post('/refresh', refreshToken);
 
 // Protected routes
 router.get('/profile', authenticateToken, getProfile);

@@ -18,17 +18,40 @@ export const AuthProvider = ({ children }) => {
 
     // Configure axios to work with cookies
     useEffect(() => {
-        // CRITICAL: This tells axios to include cookies in all requests
+        // Include cookies and set base URL
         axios.defaults.withCredentials = true;
-        
-        // Set base URL for your API (adjust if needed)
         axios.defaults.baseURL = 'http://localhost:5000';
-        
-        // Clean up any existing localStorage tokens from old implementation
-        localStorage.removeItem('token');
-        
-        // Check if user is already authenticated via cookie
+
+        // Response interceptor to auto-refresh once on 401
+        const interceptor = axios.interceptors.response.use(
+            (resp) => resp,
+            async (error) => {
+                const original = error.config;
+                const status = error.response?.status;
+                const isRefreshCall = original?.url?.includes('/api/auth/refresh');
+                if (status === 401 && !original?._retry && !isRefreshCall) {
+                    original._retry = true;
+                    try {
+                        await axios.post('/api/auth/refresh');
+                        // retry the original request
+                        return axios(original);
+                    } catch (refreshErr) {
+                        // refresh failed; clear user and reject
+                        setUser(null);
+                        return Promise.reject(error);
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
+
+        // Initial auth check
         checkAuthStatus();
+
+        // Cleanup
+        return () => {
+            axios.interceptors.response.eject(interceptor);
+        };
     }, []);
 
     const checkAuthStatus = async () => {

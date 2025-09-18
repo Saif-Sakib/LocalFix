@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import axios from "axios";
 import '../../styles/common/view_details.css';
 
@@ -198,9 +199,10 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 
 	if (!isOpen) return null;
 
-	return (
-		<div className="modal-overlay" onClick={onClose}>
-			<div className="modal-container" onClick={(e) => e.stopPropagation()}>
+	// Render the modal at the document.body level to ensure it overlays the whole page
+	return ReactDOM.createPortal(
+		<div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Issue details dialog">
+				<div className="modal-container" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
 					<h2 className="modal-title">Issue Details</h2>
 					<button className="modal-close" onClick={onClose} aria-label="Close modal">
@@ -409,7 +411,8 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 					</button>
 				</div>
 			</div>
-		</div>
+		</div>,
+		document.body
 	);
 };
 

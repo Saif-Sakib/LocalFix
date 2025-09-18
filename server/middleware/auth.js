@@ -3,15 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const authenticateToken = async (req, res, next) => {
     try {
-        // Primary method: Get token from HTTP-only cookie
-        let token = req.cookies?.authToken;
-        
-        // Fallback: Check Authorization header for backward compatibility
-        // This allows API clients or mobile apps to still use Bearer tokens
-        if (!token) {
-            const authHeader = req.headers['authorization'];
-            token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-        }
+        // Get access token from HTTP-only cookie only (cookie-based auth)
+        const token = req.cookies?.accessToken;
 
         if (!token) {
             return res.status(401).json({ 
@@ -21,7 +14,7 @@ const authenticateToken = async (req, res, next) => {
         }
 
         // Verify the JWT token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         // Attach user information to request object for use in subsequent middleware/routes
         req.user = {

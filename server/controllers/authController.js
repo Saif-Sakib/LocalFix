@@ -3,45 +3,68 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
-const generateToken = (user) => {
+// Token helpers: short-lived access, long-lived refresh (rotation, httpOnly cookies)
+const ACCESS_TOKEN_TTL = process.env.ACCESS_TOKEN_TTL || '15m';
+const REFRESH_TOKEN_TTL = process.env.REFRESH_TOKEN_TTL || '30d';
+
+const ACCESS_TOKEN_COOKIE = 'accessToken';
+const REFRESH_TOKEN_COOKIE = 'refreshToken';
+
+const getAccessSecret = () => process.env.JWT_SECRET;
+const getRefreshSecret = () => process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+
+const generateAccessToken = (user) => {
     return jwt.sign(
-        { 
-            user_id: user.user_id, 
-            email: user.email, 
-            user_type: user.user_type 
+        {
+            user_id: user.user_id,
+            email: user.email,
+            user_type: user.user_type,
         },
-        process.env.JWT_SECRET,
-        { expiresIn: '24h' } // Keep token expiration shorter for security
+        getAccessSecret(),
+        { expiresIn: ACCESS_TOKEN_TTL }
     );
 };
 
-// Helper function to set secure authentication cookies
-const setAuthCookie = (res, token, rememberMe = false) => {
-    const cookieOptions = {
-        httpOnly: true,  // Prevents XSS attacks - JavaScript cannot access this cookie
-        secure: process.env.NODE_ENV === 'production', // Only HTTPS in production, HTTP OK for localhost
-        sameSite: 'lax', // Changed from 'strict' to 'lax' for better localhost compatibility
-        path: '/', // Cookie available for entire site
-    };
-    
-    // If rememberMe is true, set cookie to expire in 30 days
-    // If rememberMe is false, this becomes a session cookie (expires when browser closes)
-    if (rememberMe) {
-        cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
-    }
-    // Note: When maxAge is not set, the cookie becomes a session cookie
-    
-    res.cookie('authToken', token, cookieOptions);
+// include remember flag in payload so we can persist cookie type across rotations
+const generateRefreshToken = (user, remember) => {
+    return jwt.sign(
+        {
+            user_id: user.user_id,
+            email: user.email,
+            user_type: user.user_type,
+            remember: !!remember,
+        },
+        getRefreshSecret(),
+        { expiresIn: REFRESH_TOKEN_TTL }
+    );
 };
 
-// Helper function to clear authentication cookie
-const clearAuthCookie = (res) => {
-    res.clearCookie('authToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/'
-    });
+const cookieBase = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+};
+
+const setAccessCookie = (res, token) => {
+    // Align cookie lifetime roughly with token lifetime (15 minutes default)
+    const maxAgeMs = 15 * 60 * 1000;
+    res.cookie(ACCESS_TOKEN_COOKIE, token, { ...cookieBase, maxAge: maxAgeMs });
+};
+
+const setRefreshCookie = (res, token, remember) => {
+    const options = { ...cookieBase };
+    // persist for 30d when remember=true; otherwise session cookie
+    if (remember) {
+        options.maxAge = 30 * 24 * 60 * 60 * 1000;
+    }
+    res.cookie(REFRESH_TOKEN_COOKIE, token, options);
+};
+
+const clearAuthCookies = (res) => {
+    const base = { ...cookieBase };
+    res.clearCookie(ACCESS_TOKEN_COOKIE, base);
+    res.clearCookie(REFRESH_TOKEN_COOKIE, base);
 };
 
 const register = async (req, res) => {
@@ -77,9 +100,11 @@ const register = async (req, res) => {
             user_type
         });
 
-        // Generate token and set secure cookie
-        const token = generateToken(newUser);
-        setAuthCookie(res, token, rememberMe);
+        // Generate tokens and set secure cookies
+        const accessToken = generateAccessToken(newUser);
+        const refreshToken = generateRefreshToken(newUser, rememberMe);
+        setAccessCookie(res, accessToken);
+        setRefreshCookie(res, refreshToken, rememberMe);
 
         res.status(201).json({
             success: true,
@@ -92,7 +117,7 @@ const register = async (req, res) => {
                 address: newUser.address,
                 user_type: newUser.user_type
             }
-            // Note: No token in response body - it's now in secure cookie
+            // Tokens are in HTTP-only cookies
         });
 
     } catch (error) {
@@ -152,9 +177,11 @@ const login = async (req, res) => {
             });
         }
 
-        // Generate token and set secure cookie
-        const token = generateToken(user);
-        setAuthCookie(res, token, rememberMe);
+    // Generate tokens and set secure cookies
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user, rememberMe);
+    setAccessCookie(res, accessToken);
+    setRefreshCookie(res, refreshToken, rememberMe);
 
         res.json({
             success: true,
@@ -168,7 +195,7 @@ const login = async (req, res) => {
                 user_type: user.user_type,
                 img_url: user.img_url
             }
-            // Note: No token in response body - it's now in secure cookie
+            // Tokens are in HTTP-only cookies
         });
 
     } catch (error) {
@@ -183,8 +210,8 @@ const login = async (req, res) => {
 // Logout endpoint to clear cookies
 const logout = async (req, res) => {
     try {
-        // Clear the authentication cookie
-        clearAuthCookie(res);
+        // Clear both access and refresh cookies
+        clearAuthCookies(res);
         
         res.json({
             success: true,
@@ -350,7 +377,7 @@ const deleteAccount = async (req, res) => {
                 message: 'User not found or already deleted'
             });
         }
-        clearAuthCookie(res);
+        clearAuthCookies(res);
         res.json({
             success: true,
             message: 'Account deleted successfully'
@@ -364,6 +391,41 @@ const deleteAccount = async (req, res) => {
     }
 };
 
+// Token refresh using refresh cookie; rotates refresh token and renews access token
+const refreshToken = async (req, res) => {
+    try {
+        const token = req.cookies?.[REFRESH_TOKEN_COOKIE];
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'Refresh token required' });
+        }
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, getRefreshSecret());
+        } catch (err) {
+            return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+        }
+
+        // Ensure user still exists and is active
+        const user = await User.findById(decoded.user_id);
+        if (!user || user.status !== 'active') {
+            clearAuthCookies(res);
+            return res.status(401).json({ success: false, message: 'User not authorized' });
+        }
+
+        // Rotate refresh token and issue new access token
+        const newAccess = generateAccessToken(user);
+        const newRefresh = generateRefreshToken(user, decoded.remember);
+        setAccessCookie(res, newAccess);
+        setRefreshCookie(res, newRefresh, decoded.remember);
+
+        return res.json({ success: true });
+    } catch (error) {
+        console.error('Refresh token error:', error);
+        return res.status(500).json({ success: false, message: 'Failed to refresh token' });
+    }
+};
+
 module.exports = {
     register,
     login,
@@ -372,5 +434,6 @@ module.exports = {
     updateProfile,
     updateProfileImage,
     removeProfileImage,
-    deleteAccount
+    deleteAccount,
+    refreshToken
 };

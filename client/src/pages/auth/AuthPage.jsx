@@ -4,7 +4,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import AnimatedBackground from '../../components/AnimatedBackground';
-import Forgot_password from './forgot_password';
 import '../../styles/common/auth.css'; // Make sure this path is correct
 
 const AuthPage = () => {
@@ -44,9 +43,6 @@ const AuthPage = () => {
     const [focus_name, setFocusName] = useState(false);
     const [focus_password, setFocusPassword] = useState(false);
     const [focus_confirm_password, setFocusConfirmPassword] = useState(false);
-
-    // Modal states
-    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -130,144 +126,133 @@ const AuthPage = () => {
         <AnimatedBackground>
             <div 
                 className={`container ${!isLoginView ? "signup-active" : ""}`}
-                style={{minWidth: '60vw',marginTop:'20vh'}}
+                style={{minWidth: '60vw',marginTop:'20px'}}
             >
-                {/* Signup Form Container */}
-                <div className="form-box register">
-                    <form onSubmit={onSignup}>
-                        <h1>Create Account</h1>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type="text" placeholder="Full Name" value={name} onFocus={() => setFocusName(true)} onBlur={() => setFocusName(false)} onChange={(e) => e.target.value.length <= 50 && setName(e.target.value)} required />
-                                <i className="bx bx-user" />
-                            </div>
-                            <div className={`validation-box ${focus_name ? 'show' : 'hide'}`}>
-                                <p>{name.length <= 50 ? 50 - name.length : 0}/50 characters left</p>
-                            </div>
+            {/* Signup Form Container */}
+            <div className="form-box register">
+                <form onSubmit={onSignup}>
+                    <h1>Create Account</h1>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type="text" placeholder="Full Name" value={name} onFocus={() => setFocusName(true)} onBlur={() => setFocusName(false)} onChange={(e) => e.target.value.length <= 50 && setName(e.target.value)} required />
+                            <i className="bx bx-user" />
                         </div>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type="email" placeholder="Email" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
-                                <i className="bx bx-envelope" />
-                            </div>
+                        <div className={`validation-box ${focus_name ? 'show' : 'hide'}`}>
+                            <p>{name.length <= 50 ? 50 - name.length : 0}/50 characters left</p>
                         </div>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type="text" placeholder="Phone Number (01XXXXXXXXX)" value={number} onChange={(e) => { const value = e.target.value.replace(/\D/g, ''); if (value.length <= 11) { setNumber(value); } }} required />
-                                <i className="bx bx-phone" />
-                            </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type="email" placeholder="Email" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required />
+                            <i className="bx bx-envelope" />
                         </div>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} required />
-                                <i className="bx bx-map" />
-                            </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type="text" placeholder="Phone Number (01XXXXXXXXX)" value={number} onChange={(e) => { const value = e.target.value.replace(/\D/g, ''); if (value.length <= 11) { setNumber(value); } }} required />
+                            <i className="bx bx-phone" />
                         </div>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type={showSignupPassword ? "text" : "password"} placeholder="Password" value={signupPassword} onChange={check_password} onFocus={() => setFocusPassword(true)} onBlur={() => setFocusPassword(false)} required />
-                                <i className={`bx ${showSignupPassword ? 'bx-show' : 'bx-hide'}`} onClick={() => setShowSignupPassword(!showSignupPassword)} style={{ cursor: 'pointer' }} />
-                            </div>
-                            <div className={`validation-box ${focus_password ? 'visible' : 'hidden'}`}>
-                                <p>{password_validity.length ? "✅" : "❌"} At least 8 characters</p>
-                                <p>{password_validity.uppercase ? "✅" : "❌"} At least 1 uppercase letter</p>
-                                <p>{password_validity.lowercase ? "✅" : "❌"} At least 1 lowercase letter</p>
-                                <p>{password_validity.numbers ? "✅" : "❌"} At least 1 number</p>
-                                <p>{password_validity.special_characters ? "✅" : "❌"} At least 1 special character (@$!%*?&)</p>
-                            </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type="text" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} required />
+                            <i className="bx bx-map" />
                         </div>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" value={confirmPassword} onChange={check_confirm_password} onFocus={() => setFocusConfirmPassword(true)} onBlur={() => setFocusConfirmPassword(false)} required />
-                                <i className={`bx ${showConfirmPassword ? 'bx-show' : 'bx-hide'}`} onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ cursor: 'pointer' }} />
-                            </div>
-                            <div className={`validation-box ${focus_confirm_password ? 'visible' : 'hidden'}`}>
-                                <p>{same_password ? "✅" : "❌"} Passwords match</p>
-                            </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type={showSignupPassword ? "text" : "password"} placeholder="Password" value={signupPassword} onChange={check_password} onFocus={() => setFocusPassword(true)} onBlur={() => setFocusPassword(false)} required />
+                            <i className={`bx ${showSignupPassword ? 'bx-show' : 'bx-hide'}`} onClick={() => setShowSignupPassword(!showSignupPassword)} style={{ cursor: 'pointer' }} />
                         </div>
-                        <div className="form-group">
-                            <div className="dropdown">
-                                <select name="user" value={signupUserType} onChange={(e) => setSignupUserType(e.target.value)} required>
-                                    <option value="" disabled>Select User Type</option>
-                                    <option value="citizen">Citizen</option>
-                                    <option value="worker">Worker</option>
-                                </select>
-                            </div>
+                        <div className={`validation-box ${focus_password ? 'visible' : 'hidden'}`}>
+                            <p>{password_validity.length ? "✅" : "❌"} At least 8 characters</p>
+                            <p>{password_validity.uppercase ? "✅" : "❌"} At least 1 uppercase letter</p>
+                            <p>{password_validity.lowercase ? "✅" : "❌"} At least 1 lowercase letter</p>
+                            <p>{password_validity.numbers ? "✅" : "❌"} At least 1 number</p>
+                            <p>{password_validity.special_characters ? "✅" : "❌"} At least 1 special character (@$!%*?&)</p>
                         </div>
-                        <button type="submit" className="button">Sign Up</button>
-                        <p className="mobile-toggle">
-                            Already have an account? <span onClick={() => setIsLoginView(true)}>Login</span>
-                        </p>
-                    </form>
-                </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" value={confirmPassword} onChange={check_confirm_password} onFocus={() => setFocusConfirmPassword(true)} onBlur={() => setFocusConfirmPassword(false)} required />
+                            <i className={`bx ${showConfirmPassword ? 'bx-show' : 'bx-hide'}`} onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ cursor: 'pointer' }} />
+                        </div>
+                        <div className={`validation-box ${focus_confirm_password ? 'visible' : 'hidden'}`}>
+                            <p>{same_password ? "✅" : "❌"} Passwords match</p>
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="dropdown">
+                            <select name="user" value={signupUserType} onChange={(e) => setSignupUserType(e.target.value)} required>
+                                <option value="" disabled>Select User Type</option>
+                                <option value="citizen">Citizen</option>
+                                <option value="worker">Worker</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" className="button">Sign Up</button>
+                    <p className="mobile-toggle">
+                        Already have an account? <span onClick={() => setIsLoginView(true)}>Login</span>
+                    </p>
+                </form>
+            </div>
 
-                {/* Login Form Container */}
-                <div className="form-box login">
-                    <form onSubmit={onLogin}>
-                        <h1>Welcome Back</h1>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                                <i className="bx bx-envelope" />
-                            </div>
+            {/* Login Form Container */}
+            <div className="form-box login">
+                <form onSubmit={onLogin}>
+                    <h1>Welcome Back</h1>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                            <i className="bx bx-envelope" />
                         </div>
-                        <div className="form-group">
-                            <div className="input-box">
-                                <input type={showLoginPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                                <i className={`bx ${showLoginPassword ? 'bx-show' : 'bx-hide'}`} onClick={() => setShowLoginPassword(!showLoginPassword)} style={{ cursor: 'pointer' }} />
-                            </div>
+                    </div>
+                    <div className="form-group">
+                        <div className="input-box">
+                            <input type={showLoginPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                            <i className={`bx ${showLoginPassword ? 'bx-show' : 'bx-hide'}`} onClick={() => setShowLoginPassword(!showLoginPassword)} style={{ cursor: 'pointer' }} />
                         </div>
-                        <div className="form-group">
-                            <div className="dropdown">
-                                <select name="user" value={user_type} onChange={(e) => set_user_type(e.target.value)} required>
-                                    <option value="" disabled>Select User Type</option>
-                                    <option value="citizen">Citizen</option>
-                                    <option value="worker">Worker</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </div>
+                    </div>
+                    <div className="form-group">
+                         <div className="dropdown">
+                            <select name="user" value={user_type} onChange={(e) => set_user_type(e.target.value)} required>
+                                <option value="" disabled>Select User Type</option>
+                                <option value="citizen">Citizen</option>
+                                <option value="worker">Worker</option>
+                                <option value="admin">Admin</option>
+                            </select>
                         </div>
-                        <div className="remember-forgot">
-                            <label className="remember-me">
-                                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                                Remember Me
-                            </label>
-                            <button 
-                                type="button" 
-                                className="forgot-link" 
-                                onClick={() => setShowForgotPasswordModal(true)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                            >
-                                Forgot Password?
-                            </button>
-                        </div>
-                        <button type="submit" className="button">Login</button>
-                        <p className="mobile-toggle">
-                            Don't have an account? <span onClick={() => setIsLoginView(false)}>Sign Up</span>
-                        </p>
-                    </form>
-                </div>
+                    </div>
+                    <div className="remember-forgot">
+                        <label className="remember-me">
+                            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                            Remember Me
+                        </label>
+                        <Link to="/forgot_password" className="forgot-link">Forgot Password?</Link>
+                    </div>
+                    <button type="submit" className="button">Login</button>
+                    <p className="mobile-toggle">
+                        Don't have an account? <span onClick={() => setIsLoginView(false)}>Sign Up</span>
+                    </p>
+                </form>
+            </div>
 
-                {/* Sliding Toggle Overlay */}
-                <div className="toggle-container">
-                    <div className="toggle-overlay">
-                        <div className="toggle-panel toggle-left">
-                            <h1>Login</h1>
-                            <p>Already have an account? Login to access your dashboard.</p>
-                            <button className="toggle-button" onClick={() => setIsLoginView(true)}>Login</button>
-                        </div>
-                        <div className="toggle-panel toggle-right">
-                            <h1>Sign Up</h1>
-                            <p>Don't have an account? Register to join our community.</p>
-                            <button className="toggle-button" onClick={() => setIsLoginView(false)}>Sign Up</button>
-                        </div>
+            {/* Sliding Toggle Overlay */}
+            <div className="toggle-container">
+                <div className="toggle-overlay">
+                    <div className="toggle-panel toggle-left">
+                        <h1>Login</h1>
+                        <p>Already have an account? Login to access your dashboard.</p>
+                        <button className="toggle-button" onClick={() => setIsLoginView(true)}>Login</button>
+                    </div>
+                    <div className="toggle-panel toggle-right">
+                        <h1>Sign Up</h1>
+                        <p>Don't have an account? Register to join our community.</p>
+                        <button className="toggle-button" onClick={() => setIsLoginView(false)}>Sign Up</button>
                     </div>
                 </div>
             </div>
-
-            {showForgotPasswordModal && (
-                <Forgot_password onClose={() => setShowForgotPasswordModal(false)} />
-            )}
+            </div>
         </AnimatedBackground>
     );
 };
