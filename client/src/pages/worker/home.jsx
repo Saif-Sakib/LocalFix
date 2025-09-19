@@ -104,6 +104,13 @@ const WorkerHome = () => {
             icon: '👤',
             action: () => navigate('/worker?tab=profile'),
             color: '#8b5cf6'
+        },
+        {
+            title: 'My Earnings',
+            description: 'View payment history and request withdrawals',
+            icon: '💰',
+            action: () => navigate('/worker?tab=payment'),
+            color: '#059669'
         }
     ];
 

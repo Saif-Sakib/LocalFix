@@ -82,7 +82,7 @@ function ReviewProblems() {
                     : submission
             )
         );
-        alert('Proof accepted successfully!');
+        alert('Worker Paid successfully!');
     };
 
     const handleRequestRevision = (proofId) => {
@@ -159,15 +159,6 @@ function ReviewProblems() {
 
                                     <div className="card-body">
                                         <div className="worker-section">
-                                            <div className="worker-avatar">
-                                                <img 
-                                                    src={`http://localhost:5000/api/uploads/image/profiles/${submission.worker_profile_image.split('/').pop()}`}
-                                                    alt={submission.worker_name}
-                                                    onError={(e) => {
-                                                        e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNGM0Y0RjYiLz4KPGNpcmNsZSBjeD0iMjAiIGN5PSIxNiIgcj0iNiIgZmlsbD0iIzlCA0E0QjkiLz4KPHBhdGggZD0iTTggMzJDOCAyNS4zNzI2IDEzLjM3MjYgMjAgMjAgMjBTMzIgMjUuMzcyNiAzMiAzMiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K";
-                                                    }}
-                                                />
-                                            </div>
                                             <div className="worker-details">
                                                 <h4 className="worker-name">{submission.worker_name}</h4>
                                                 <p className="worker-contact">{submission.worker_email}</p>
@@ -212,7 +203,7 @@ function ReviewProblems() {
                                             className="btn btn-view-details"
                                             onClick={() => handleViewDetails(submission.issue_id)}
                                         >
-                                            <span className="btn-icon">👁️</span>
+                                            <span className="btn-icon">📖</span>
                                             View Details
                                         </button>
                                         
@@ -223,7 +214,7 @@ function ReviewProblems() {
                                                     onClick={() => handleAcceptProof(submission.proof_id)}
                                                 >
                                                     <span className="btn-icon">✅</span>
-                                                    Accept
+                                                    Pay Now
                                                 </button>
                                                 
                                                 <button 

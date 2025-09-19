@@ -6,6 +6,7 @@ import Profile from "../common/profile";
 import IssueList from "../common/IssueList";
 import Application from "./application";
 import ReviewProblems from "./review_problem";
+import AdminPayment from "./payment";
 import "../../styles/common/dashboard.css";
 
 function AdminDashboard() {
@@ -27,6 +28,7 @@ function AdminDashboard() {
             'issues': 'Issues',
             'review-problems': 'Review Problems',
             'applications': 'Application',
+            'payment': 'Payment',
             'home': 'Home'
         };
 
@@ -71,6 +73,7 @@ function AdminDashboard() {
             'Issues': 'issues',
             'Review Problems': 'review-problems',
             'Application': 'applications',
+            'Payment': 'payment',
             'Home': 'home'
         };
 
@@ -100,6 +103,8 @@ function AdminDashboard() {
                 return <Application />;
             case "Review Problems":
                 return <ReviewProblems />;
+            case "Payment":
+                return <AdminPayment />;
             default:
                 return <AdminHome />;
         }
@@ -162,6 +167,13 @@ function AdminDashboard() {
                         >
                             <i className="bx bx-check-circle"></i>
                             <span>Review Works</span>
+                        </button>
+                        <button
+                            onClick={() => handleTabChange("Payment")}
+                            style={currentTab === "Payment" ? { backgroundColor: "#bcd6fbff" } : {}}
+                        >
+                            <i className="bx bx-money"></i>
+                            <span>Payments</span>
                         </button>
                     </div>
                 </div>
