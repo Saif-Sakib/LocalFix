@@ -146,23 +146,23 @@
 }
 
 .priority-low {
-    background-color: #e8f5e8;
-    color: #4caf50;
+    background-color: #4caf50;
+    /* color: #4caf50; */
 }
 
 .priority-medium {
-    background-color: #fff3e0;
-    color: #ff9800;
+    background-color: #ff9800;
+    /* color: #ff9800; */
 }
 
 .priority-high {
-    background-color: #ffeee6;
-    color: #ff5722;
+    background-color: #ff5722;
+    /* color: #ff5722; */
 }
 
 .priority-urgent {
-    background-color: #ffebee;
-    color: #f44336;
+    background-color: #f44336;
+    /* color: #f44336; */
 }
 
 /* Description Section */
