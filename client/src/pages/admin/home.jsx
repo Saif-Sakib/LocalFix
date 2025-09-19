@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
@@ -6,96 +6,126 @@ import { PieChart, Pie, Cell } from "recharts";
 import { LineChart, Line, ResponsiveContainer } from "recharts";
 import AnimatedBackground from "../../components/AnimatedBackground";
 import "../../styles/admin/home.css";
+import axios from "axios";
 
 function AdminHome() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     
     const [month, set_month] = useState([]);
     const [category, set_category] = useState([]);
     const [average, set_average] = useState([]);
     const [stats, setStats] = useState({
-        totalCitizens: 0,
-        totalWorkers: 0,
         totalOpenIssues: 0,
-        pendingIssues: 0,
+        submittedIssues: 0,
+        underReviewIssues: 0,
         resolvedIssues: 0,
         totalApplications: 0,
         activeJobs: 0,
         completionRate: 0
     });
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     const COLORS = ["#0088FE", "#00C49F", "#9b0ef3ff", "#FF8042", "#a2ac49ff"];
 
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            
-            // Use sample data instead of API calls
+            setError('');
+            const [issuesRes, pendingAppsRes] = await Promise.all([
+                axios.get('/api/issues'),
+                axios.get('/api/issues/applications/pending')
+            ]);
+
+            const issues = issuesRes.data?.issues || [];
+            const pendingApps = pendingAppsRes.data?.applications || [];
+
+            // Normalize and compute stats
+            const normalized = issues.map((i) => ({
+                id: i.ISSUE_ID || i.issue_id || i.ID,
+                status: (i.STATUS || i.status || '').toLowerCase(),
+                category: i.CATEGORY || i.category,
+                created_at: i.CREATED_AT || i.created_at,
+                updated_at: i.UPDATED_AT || i.updated_at
+            }));
+
+            const openSet = new Set(['submitted','applied','assigned','in_progress','under_review']);
+            const totalOpenIssues = normalized.filter(i => openSet.has(i.status)).length;
+            const submittedIssues = normalized.filter(i => i.status === 'submitted').length;
+            const underReviewIssues = normalized.filter(i => i.status === 'under_review').length;
+            const resolvedIssues = normalized.filter(i => i.status === 'resolved').length;
+            const activeJobs = normalized.filter(i => ['assigned','in_progress'].includes(i.status)).length;
+            const total = normalized.length || 0;
+            const completionRate = total ? Math.round((resolvedIssues / total) * 100) : 0;
+
             setStats({
-                totalCitizens: 247,
-                totalWorkers: 89,
-                totalOpenIssues: 23,
-                pendingIssues: 8,
-                resolvedIssues: 156,
-                totalApplications: 5, // Sample applications count
-                activeJobs: 15,
-                completionRate: 87.2
+                totalOpenIssues,
+                submittedIssues,
+                underReviewIssues,
+                resolvedIssues,
+                totalApplications: pendingApps.length,
+                activeJobs,
+                completionRate
             });
 
-            set_month([
-                { name: "Jan", Assigned: 10, Solved: 6 },
-                { name: "Feb", Assigned: 12, Solved: 8 },
-                { name: "Mar", Assigned: 15, Solved: 10 },
-                { name: "Apr", Assigned: 20, Solved: 15 },
-                { name: "May", Assigned: 25, Solved: 20 },
-                { name: "Jun", Assigned: 30, Solved: 25 }
-            ]);
+            // Category distribution
+            const catCounts = normalized.reduce((acc, cur) => {
+                const key = cur.category || 'Other';
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+            }, {});
+            const catData = Object.entries(catCounts).map(([name, value]) => ({ name, value }));
+            set_category(catData);
 
-            set_average([
-                { date: "2025-08-19", avgResolution: 4.2, avgAdded: 6.1 },
-                { date: "2025-08-20", avgResolution: 3.8, avgAdded: 5.9 },
-                { date: "2025-08-21", avgResolution: 5.1, avgAdded: 7.3 },
-                { date: "2025-08-22", avgResolution: 2.9, avgAdded: 4.8 },
-                { date: "2025-08-23", avgResolution: 4.7, avgAdded: 6.5 },
-                { date: "2025-08-24", avgResolution: 3.4, avgAdded: 5.2 },
-                { date: "2025-08-25", avgResolution: 6.0, avgAdded: 8.1 },
-                { date: "2025-08-26", avgResolution: 4.3, avgAdded: 6.7 },
-                { date: "2025-08-27", avgResolution: 3.9, avgAdded: 5.8 },
-                { date: "2025-08-28", avgResolution: 5.5, avgAdded: 7.2 },
-                { date: "2025-08-29", avgResolution: 4.1, avgAdded: 6.3 },
-                { date: "2025-08-30", avgResolution: 5.2, avgAdded: 7.1 },
-                { date: "2025-08-31", avgResolution: 3.8, avgAdded: 6.4 },
-                { date: "2025-09-01", avgResolution: 4.5, avgAdded: 5.9 },
-                { date: "2025-09-02", avgResolution: 2.9, avgAdded: 4.8 },
-                { date: "2025-09-03", avgResolution: 6.1, avgAdded: 8.2 },
-                { date: "2025-09-04", avgResolution: 4.0, avgAdded: 6.7 },
-                { date: "2025-09-05", avgResolution: 3.4, avgAdded: 5.1 },
-                { date: "2025-09-06", avgResolution: 5.7, avgAdded: 7.8 },
-                { date: "2025-09-07", avgResolution: 4.8, avgAdded: 6.9 }
-            ]);
+            // Monthly performance (last 6 months): created vs resolved per month
+            const now = new Date();
+            const months = Array.from({ length: 6 }, (_, idx) => {
+                const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1);
+                return { key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleString('default', { month: 'short' }) };
+            });
 
-            set_category([
-                { name: "Road & Infrastructure", value: 35 },
-                { name: "Electricity & Lights", value: 28 },
-                { name: "Water & Sanitation", value: 20 },
-                { name: "Waste Management", value: 12 },
-                { name: "Public Safety", value: 5 }
-            ]);
+            const monthData = months.map(m => ({ name: m.label, Assigned: 0, Solved: 0 }));
+            normalized.forEach(i => {
+                if (i.created_at) {
+                    const d = new Date(i.created_at);
+                    const k = `${d.getFullYear()}-${d.getMonth()}`;
+                    const idx = months.findIndex(mm => mm.key === k);
+                    if (idx >= 0) monthData[idx].Assigned += 1;
+                }
+                if (i.status === 'resolved' && i.updated_at) {
+                    const d = new Date(i.updated_at);
+                    const k = `${d.getFullYear()}-${d.getMonth()}`;
+                    const idx = months.findIndex(mm => mm.key === k);
+                    if (idx >= 0) monthData[idx].Solved += 1;
+                }
+            });
+            set_month(monthData);
+
+            // Activity trends - last 20 days: counts per day
+            const days = Array.from({ length: 20 }, (_, i) => {
+                const d = new Date(now);
+                d.setDate(d.getDate() - (19 - i));
+                const iso = d.toISOString().split('T')[0];
+                return { date: iso, avgResolution: 0, avgAdded: 0 };
+            });
+            normalized.forEach(i => {
+                if (i.created_at) {
+                    const iso = new Date(i.created_at).toISOString().split('T')[0];
+                    const idx = days.findIndex(d => d.date === iso);
+                    if (idx >= 0) days[idx].avgAdded += 1;
+                }
+                if (i.status === 'resolved' && i.updated_at) {
+                    const iso = new Date(i.updated_at).toISOString().split('T')[0];
+                    const idx = days.findIndex(d => d.date === iso);
+                    if (idx >= 0) days[idx].avgResolution += 1;
+                }
+            });
+            set_average(days);
+
         } catch (error) {
             console.error('Error loading dashboard data:', error);
-            // Use fallback data
-            setStats({
-                totalCitizens: 247,
-                totalWorkers: 89,
-                totalOpenIssues: 23,
-                pendingIssues: 8,
-                resolvedIssues: 156,
-                totalApplications: 5,
-                activeJobs: 15,
-                completionRate: 87.2
-            });
+            setError(error.response?.data?.message || 'Failed to load admin dashboard');
         } finally {
             setLoading(false);
         }
@@ -108,27 +138,27 @@ function AdminHome() {
     const quickActions = [
         {
             title: 'Review Issues',
-            description: 'Review and manage reported issues',
-            icon: '📋',
+            description: 'Newly submitted issues awaiting triage',
+            icon: '�️',
             action: () => navigate('/admin?tab=issues'),
             color: '#3b82f6',
-            count: stats.pendingIssues
+            count: stats.submittedIssues
         },
         {
             title: 'Worker Applications',
-            description: 'Review and manage worker applications',
-            icon: '�',
+            description: 'Review pending worker applications',
+            icon: '📨',
             action: () => navigate('/admin?tab=applications'),
             color: '#f59e0b',
             count: stats.totalApplications
         },
         {
             title: 'Review Problems',
-            description: 'Review completed work submissions',
-            icon: '�',
+            description: 'Proof submitted and under review',
+            icon: '🧾',
             action: () => navigate('/admin?tab=review-problems'),
             color: '#10b981',
-            count: stats.activeJobs
+            count: stats.underReviewIssues
         },
         {
             title: 'System Reports',
@@ -164,7 +194,7 @@ function AdminHome() {
         return `${year}`;
     }
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="admin-home-loading">
                 <div className="loading-spinner"></div>
@@ -215,23 +245,12 @@ function AdminHome() {
             {/* Statistics Overview */}
             <div className="stats-overview">
                 <h2>System Overview</h2>
+                {error && (
+                    <div className="error-banner" style={{ marginBottom: 16 }}>{error}</div>
+                )}
                 <div className="stats-grid">
-                    <div className="stat-card users">
-                        <div className="stat-icon">👥</div>
-                        <div className="stat-info">
-                            <h3>{stats.totalCitizens}</h3>
-                            <p>Total Citizens</p>
-                        </div>
-                    </div>
-                    <div className="stat-card workers">
-                        <div className="stat-icon">🔧</div>
-                        <div className="stat-info">
-                            <h3>{stats.totalWorkers}</h3>
-                            <p>Total Workers</p>
-                        </div>
-                    </div>
                     <div className="stat-card open-issues">
-                        <div className="stat-icon">📋</div>
+                        <div className="stat-icon">�</div>
                         <div className="stat-info">
                             <h3>{stats.totalOpenIssues}</h3>
                             <p>Open Issues</p>
@@ -240,8 +259,8 @@ function AdminHome() {
                     <div className="stat-card pending">
                         <div className="stat-icon">⏳</div>
                         <div className="stat-info">
-                            <h3>{stats.pendingIssues}</h3>
-                            <p>Pending Reviews</p>
+                            <h3>{stats.submittedIssues}</h3>
+                            <p>New Submissions</p>
                         </div>
                     </div>
                     <div className="stat-card resolved">
@@ -249,6 +268,13 @@ function AdminHome() {
                         <div className="stat-info">
                             <h3>{stats.resolvedIssues}</h3>
                             <p>Resolved Issues</p>
+                        </div>
+                    </div>
+                    <div className="stat-card workers">
+                        <div className="stat-icon">🧪</div>
+                        <div className="stat-info">
+                            <h3>{stats.underReviewIssues}</h3>
+                            <p>Under Review</p>
                         </div>
                     </div>
                     <div className="stat-card completion">

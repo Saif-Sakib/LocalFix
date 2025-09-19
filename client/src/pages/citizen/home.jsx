@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AnimatedBackground from '../../components/AnimatedBackground';
@@ -6,7 +6,7 @@ import axios from 'axios';
 import '../../styles/citizen/home.css';
 
 const CitizenHome = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         totalIssues: 0,
@@ -16,6 +16,7 @@ const CitizenHome = () => {
     });
     const [recentIssues, setRecentIssues] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         fetchDashboardData();
@@ -23,32 +24,20 @@ const CitizenHome = () => {
 
     const fetchDashboardData = async () => {
         try {
-            // Fetch user's issues statistics - updated API call
-            const statsResponse = await axios.get('http://localhost:5000/api/issues/user/stats', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (statsResponse.data.success) {
+            setError('');
+            const [statsResponse, recentResponse] = await Promise.all([
+                axios.get('/api/issues/user/stats'),
+                axios.get('/api/issues/user/recent', { params: { limit: 10 } })
+            ]);
+
+            if (statsResponse.data?.success && statsResponse.data.stats) {
                 setStats(statsResponse.data.stats);
             }
-
-            // Fetch recent issues - updated API call
-            const recentResponse = await axios.get('http://localhost:5000/api/issues/user/recent?limit=3', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            if (recentResponse.data.success) {
-                setRecentIssues(recentResponse.data.issues);
-            }
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            // Handle authentication errors
-            if (error.response?.status === 401) {
-                console.error('Authentication failed - redirecting to login');
-                // You might want to redirect to login here
-            }
+            const issues = recentResponse.data?.issues || [];
+            setRecentIssues(Array.isArray(issues) ? issues : []);
+        } catch (err) {
+            console.error('Error fetching dashboard data:', err);
+            setError(err.response?.data?.message || 'Failed to load dashboard');
         } finally {
             setLoading(false);
         }
@@ -63,7 +52,7 @@ const CitizenHome = () => {
             color: '#3b82f6'
         },
         {
-            title: 'My Posts',
+            title: 'My Issues',
             description: 'View and manage your reported issues',
             icon: '📋',
             action: () => navigate('/citizen?tab=my-jobs'),
@@ -121,12 +110,58 @@ const CitizenHome = () => {
         return statusMap[status?.toLowerCase()] || status;
     };
 
-    if (loading) {
+    const totals = useMemo(() => {
+        const t = Math.max(0, Number(stats.totalIssues) || 0);
+        const resolved = Math.max(0, Number(stats.resolvedIssues) || 0);
+        const inProg = Math.max(0, Number(stats.inProgressIssues) || 0);
+        const pending = Math.max(0, Number(stats.pendingIssues) || 0);
+        const active = pending + inProg;
+        const resolvedPct = t ? Math.round((resolved / t) * 100) : 0;
+        const pendingPct = t ? Math.round((pending / t) * 100) : 0;
+        const inProgPct = t ? Math.round((inProg / t) * 100) : 0;
+        return { t, resolved, inProg, pending, active, resolvedPct, pendingPct, inProgPct };
+    }, [stats]);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    const topCategories = useMemo(() => {
+        const counts = {};
+        recentIssues.forEach(i => {
+            const c = (i.category || '').trim();
+            if (!c) return;
+            counts[c] = (counts[c] || 0) + 1;
+        });
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4)
+            .map(([name, count]) => ({ name, count }));
+    }, [recentIssues]);
+
+    if (authLoading || loading) {
         return (
             <div className="citizen-home-loading">
                 <div className="loading-spinner"></div>
                 <p>Loading your dashboard...</p>
             </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <AnimatedBackground>
+                <div className="citizen-home">
+                    <div className="no-issues" style={{ marginTop: 24 }}>
+                        <div className="no-issues-icon">🔐</div>
+                        <h3>Please sign in</h3>
+                        <p>Sign in to view your citizen dashboard and manage your issues.</p>
+                        <button className="primary-btn" onClick={() => navigate('/auth/login')}>Go to Login</button>
+                    </div>
+                </div>
+            </AnimatedBackground>
         );
     }
 
@@ -137,7 +172,10 @@ const CitizenHome = () => {
             <div className="welcome-section">
                 <div className="welcome-content">
                     <h1>Welcome back, {user?.name || 'Citizen'}! 👋</h1>
-                    <p>Help make your community better by reporting issues and staying engaged.</p>
+                    <p>
+                        Track your issues at a glance. You currently have {totals.active} active
+                        {totals.active === 1 ? ' issue' : ' issues'}.
+                    </p>
                 </div>
                 <div className="welcome-illustration">
                     <span className="community-icon">🏘️</span>
@@ -176,6 +214,22 @@ const CitizenHome = () => {
                         </div>
                     </div>
                 </div>
+                {/* Status Overview Progress */}
+                <div className="status-overview">
+                    <div className="status-overview-header">
+                        <h3>Status overview</h3>
+                        <div className="status-overview-meta">
+                            <span className="badge" style={{ backgroundColor: '#fd7e14' }}>Pending {totals.pendingPct}%</span>
+                            <span className="badge" style={{ backgroundColor: '#17a2b8' }}>In Progress {totals.inProgPct}%</span>
+                            <span className="badge" style={{ backgroundColor: '#28a745' }}>Resolved {totals.resolvedPct}%</span>
+                        </div>
+                    </div>
+                    <div className="progress-bar">
+                        <div className="progress-segment pending" style={{ width: `${totals.pendingPct}%` }} />
+                        <div className="progress-segment in-progress" style={{ width: `${totals.inProgPct}%` }} />
+                        <div className="progress-segment resolved" style={{ width: `${totals.resolvedPct}%` }} />
+                    </div>
+                </div>
             </div>
 
             {/* Quick Actions */}
@@ -200,10 +254,10 @@ const CitizenHome = () => {
                 </div>
             </div>
 
-            {/* Recent Issues */}
+            {/* Recent Issues + Activity */}
             <div className="recent-issues-section">
                 <div className="section-header">
-                    <h2>Your Recent Issues</h2>
+                    <h2>Your Recent Activity</h2>
                     <button 
                         className="view-all-btn"
                         onClick={() => navigate('/citizen?tab=my-jobs')}
@@ -211,36 +265,46 @@ const CitizenHome = () => {
                         View All
                     </button>
                 </div>
-                
+                {error && (
+                    <div className="error-banner" style={{ marginBottom: 16 }}>{error}</div>
+                )}
                 {recentIssues.length > 0 ? (
-                    <div className="issues-grid">
-                        {recentIssues.map((issue) => (
-                            <div key={issue.issue_id} className="issue-card">
-                                <div className="issue-header">
-                                    <div className="issue-category">{issue.category}</div>
-                                    <div 
-                                        className="issue-priority"
-                                        style={{ backgroundColor: getPriorityColor(issue.priority) }}
-                                    >
-                                        {issue.priority}
-                                    </div>
-                                </div>
-                                <h4>{issue.title}</h4>
-                                <p className="issue-description">{issue.description}</p>
-                                <div className="issue-footer">
-                                    <div 
-                                        className="issue-status"
-                                        style={{ color: getStatusColor(issue.status) }}
-                                    >
-                                        {getStatusDisplayText(issue.status)}
-                                    </div>
-                                    <div className="issue-date">
-                                        {new Date(issue.created_at).toLocaleDateString()}
-                                    </div>
-                                </div>
+                    <>
+                        <div className="issues-list">
+                            {recentIssues.slice(0, 3).map((issue) => (
+                                <button
+                                    key={issue.issue_id}
+                                    className="issue-row"
+                                    onClick={() => navigate('/citizen?tab=my-jobs')}
+                                    title="View in My Issues"
+                                >
+                                    <span
+                                        className="status-dot"
+                                        style={{ backgroundColor: getStatusColor(issue.status) }}
+                                        aria-hidden
+                                    />
+                                    <span className="row-title">{issue.title}</span>
+                                    <span className="row-badge">{issue.category}</span>
+                                    <span className="row-priority" style={{ color: getPriorityColor(issue.priority) }}>{issue.priority}</span>
+                                    <span className="row-date">{formatDate(issue.updated_at || issue.created_at)}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="mini-insights">
+                            <div className="mini-item">
+                                <span className="mini-label">Active</span>
+                                <span className="mini-value">{totals.active}</span>
                             </div>
-                        ))}
-                    </div>
+                            <div className="mini-item">
+                                <span className="mini-label">Resolved</span>
+                                <span className="mini-value">{totals.resolvedPct}%</span>
+                            </div>
+                            <div className="mini-item">
+                                <span className="mini-label">Top category</span>
+                                <span className="mini-value">{topCategories[0]?.name || '—'}</span>
+                            </div>
+                        </div>
+                    </>
                 ) : (
                     <div className="no-issues">
                         <div className="no-issues-icon">📝</div>
@@ -256,7 +320,7 @@ const CitizenHome = () => {
                 )}
             </div>
 
-            {/* Tips Section */}
+            {/* Helpful Tips */}
             <div className="tips-section">
                 <h2>💡 Tips for Better Reporting</h2>
                 <div className="tips-grid">
@@ -271,9 +335,9 @@ const CitizenHome = () => {
                         <p>Provide exact location details and comprehensive descriptions</p>
                     </div>
                     <div className="tip-card">
-                        <span className="tip-icon">⚡</span>
+                        <span className="tip-icon">⚖️</span>
                         <h4>Set Priority</h4>
-                        <p>Choose appropriate priority level to help workers prioritize</p>
+                        <p>Choose an appropriate priority to help triage effectively</p>
                     </div>
                 </div>
             </div>

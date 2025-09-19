@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AnimatedBackground from '../../components/AnimatedBackground';
@@ -6,19 +6,18 @@ import axios from 'axios';
 import '../../styles/worker/home.css';
 
 const WorkerHome = () => {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         totalApplications: 0,
-        assignedJobs: 0,
+        activeJobs: 0,
         completedJobs: 0,
-        pendingApplications: 0,
-        rating: 0,
-        earnings: 0
+        pendingApplications: 0
     });
     const [recentJobs, setRecentJobs] = useState([]);
     const [availableIssues, setAvailableIssues] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         fetchDashboardData();
@@ -26,60 +25,52 @@ const WorkerHome = () => {
 
     const fetchDashboardData = async () => {
         try {
-            // Mock data for now - replace with actual API calls
-            setStats({
-                totalApplications: 12,
-                assignedJobs: 3,
-                completedJobs: 8,
-                pendingApplications: 1,
-                rating: 4.7,
-                earnings: 2450
-            });
-
-            setRecentJobs([
-                {
-                    id: 1,
-                    title: "Fix Broken Street Light",
-                    category: "Electricity & Street Lights",
-                    priority: "high",
-                    status: "in_progress",
-                    location: "Main Street, Block A",
-                    assignedDate: "2024-06-15",
-                    estimatedCompletion: "2024-06-16"
-                },
-                {
-                    id: 2,
-                    title: "Repair Pothole",
-                    category: "Road & Infrastructure", 
-                    priority: "medium",
-                    status: "assigned",
-                    location: "Park Avenue",
-                    assignedDate: "2024-06-14"
-                }
+            setError('');
+            const [statsRes, appsRes, issuesRes] = await Promise.all([
+                axios.get('/api/worker/stats'),
+                axios.get('/api/worker/applications'),
+                axios.get('/api/issues')
             ]);
 
-            setAvailableIssues([
-                {
-                    id: 3,
-                    title: "Water Leak in Community Center",
-                    category: "Water & Sanitation",
-                    priority: "urgent",
-                    location: "Community Center",
-                    postedDate: "2024-06-16",
-                    estimatedBudget: "$150-200"
-                },
-                {
-                    id: 4,
-                    title: "Garbage Collection Issue",
-                    category: "Waste Management",
-                    priority: "medium",
-                    location: "Residential Area B",
-                    postedDate: "2024-06-15",
-                    estimatedBudget: "$80-120"
-                }
-            ]);
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            // Stats
+            if (statsRes.data?.success && statsRes.data.stats) {
+                const s = statsRes.data.stats;
+                setStats({
+                    totalApplications: s.totalApplications || 0,
+                    activeJobs: s.activeJobs || 0,
+                    completedJobs: s.completedJobs || 0,
+                    pendingApplications: s.pendingApplications || 0
+                });
+            }
+
+            // Recent jobs from applications + assigned issues (API already merges)
+            const apps = appsRes.data?.applications || [];
+            const normalizedJobs = apps.map(a => ({
+                id: a.id || a.issue_id,
+                title: a.title,
+                category: a.category,
+                priority: (a.priority || '').toLowerCase(),
+                status: (a.status || a.applicationStatus || '').toLowerCase(),
+                location: a.location || a.full_address,
+                assignedDate: a.appliedDate || a.applied_at || a.lastUpdated,
+            }));
+            setRecentJobs(normalizedJobs.slice(0, 5));
+
+            // Available issues from general issues that are open for applications
+            const allIssues = issuesRes.data?.issues || [];
+            const openIssues = allIssues.filter(i => (i.STATUS || i.status) && ['submitted','applied'].includes((i.STATUS || i.status).toLowerCase()));
+            const normalizedIssues = openIssues.map(i => ({
+                id: i.ISSUE_ID || i.issue_id || i.ID,
+                title: i.TITLE || i.title,
+                category: i.CATEGORY || i.category,
+                priority: (i.PRIORITY || i.priority || '').toLowerCase(),
+                location: i.LOCATION || i.location || `${i.UPAZILA || i.upazila || ''}${i.DISTRICT || i.district ? ', ' + (i.DISTRICT || i.district) : ''}`,
+                postedDate: i.CREATED_AT || i.created_at
+            }));
+            setAvailableIssues(normalizedIssues.slice(0, 5));
+        } catch (err) {
+            console.error('Error fetching worker dashboard data:', err);
+            setError(err.response?.data?.message || 'Failed to load worker dashboard');
         } finally {
             setLoading(false);
         }
@@ -117,7 +108,7 @@ const WorkerHome = () => {
     ];
 
     const getPriorityColor = (priority) => {
-        switch (priority) {
+        switch ((priority || '').toLowerCase()) {
             case 'urgent': return '#dc3545';
             case 'high': return '#fd7e14';
             case 'medium': return '#ffc107';
@@ -127,15 +118,26 @@ const WorkerHome = () => {
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
+        switch ((status || '').toLowerCase()) {
+            case 'resolved':
             case 'completed': return '#28a745';
             case 'in_progress': return '#17a2b8';
-            case 'assigned': return '#ffc107';
+            case 'assigned': return '#6f42c1';
+            case 'applied': return '#20c997';
+            case 'submitted': return '#ffc107';
+            case 'under_review': return '#fd7e14';
             default: return '#6c757d';
         }
     };
 
-    if (loading) {
+    const formatDate = (d) => {
+        if (!d) return '';
+        const date = new Date(d);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    };
+
+    if (authLoading || loading) {
         return (
             <div className="worker-home-loading">
                 <div className="loading-spinner"></div>
@@ -171,7 +173,7 @@ const WorkerHome = () => {
                     <div className="stat-card assigned">
                         <div className="stat-icon">🔧</div>
                         <div className="stat-info">
-                            <h3>{stats.assignedJobs}</h3>
+                            <h3>{stats.activeJobs}</h3>
                             <p>Active Jobs</p>
                         </div>
                     </div>
@@ -180,20 +182,6 @@ const WorkerHome = () => {
                         <div className="stat-info">
                             <h3>{stats.completedJobs}</h3>
                             <p>Completed</p>
-                        </div>
-                    </div>
-                    <div className="stat-card earnings">
-                        <div className="stat-icon">💰</div>
-                        <div className="stat-info">
-                            <h3>${stats.earnings}</h3>
-                            <p>Total Earnings</p>
-                        </div>
-                    </div>
-                    <div className="stat-card rating">
-                        <div className="stat-icon">⭐</div>
-                        <div className="stat-info">
-                            <h3>{stats.rating}/5</h3>
-                            <p>Rating</p>
                         </div>
                     </div>
                     <div className="stat-card pending">
@@ -228,7 +216,7 @@ const WorkerHome = () => {
                 </div>
             </div>
 
-            {/* Current Jobs */}
+            {/* Current Jobs (compact) */}
             <div className="current-jobs-section">
                 <div className="section-header">
                     <h2>Current Jobs</h2>
@@ -241,32 +229,20 @@ const WorkerHome = () => {
                 </div>
                 
                 {recentJobs.length > 0 ? (
-                    <div className="jobs-grid">
-                        {recentJobs.map((job) => (
-                            <div key={job.id} className="job-card">
-                                <div className="job-header">
-                                    <div className="job-category">{job.category}</div>
-                                    <div 
-                                        className="job-priority"
-                                        style={{ backgroundColor: getPriorityColor(job.priority) }}
-                                    >
-                                        {job.priority}
-                                    </div>
-                                </div>
-                                <h4>{job.title}</h4>
-                                <p className="job-location">📍 {job.location}</p>
-                                <div className="job-footer">
-                                    <div 
-                                        className="job-status"
-                                        style={{ color: getStatusColor(job.status) }}
-                                    >
-                                        {job.status.replace('_', ' ')}
-                                    </div>
-                                    <div className="job-date">
-                                        Assigned: {new Date(job.assignedDate).toLocaleDateString()}
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="jobs-list">
+                        {recentJobs.slice(0, 5).map((job) => (
+                            <button
+                                key={job.id}
+                                className="job-row"
+                                onClick={() => navigate('/worker?tab=my-applications')}
+                                title="Open My Applications"
+                            >
+                                <span className="status-dot" style={{ backgroundColor: getStatusColor(job.status) }} />
+                                <span className="row-title">{job.title}</span>
+                                <span className="row-badge">{job.category}</span>
+                                <span className="row-priority" style={{ color: getPriorityColor(job.priority) }}>{job.priority}</span>
+                                <span className="row-date">{formatDate(job.assignedDate)}</span>
+                            </button>
                         ))}
                     </div>
                 ) : (
@@ -284,7 +260,7 @@ const WorkerHome = () => {
                 )}
             </div>
 
-            {/* Available Issues */}
+            {/* Available Issues (compact) */}
             <div className="available-issues-section">
                 <div className="section-header">
                     <h2>New Opportunities</h2>
@@ -296,33 +272,23 @@ const WorkerHome = () => {
                     </button>
                 </div>
                 
-                <div className="issues-grid">
-                    {availableIssues.map((issue) => (
-                        <div key={issue.id} className="issue-card available">
-                            <div className="issue-header">
-                                <div className="issue-category">{issue.category}</div>
-                                <div 
-                                    className="issue-priority"
-                                    style={{ backgroundColor: getPriorityColor(issue.priority) }}
-                                >
-                                    {issue.priority}
-                                </div>
-                            </div>
-                            <h4>{issue.title}</h4>
-                            <p className="issue-location">📍 {issue.location}</p>
-                            <div className="issue-budget">{issue.estimatedBudget}</div>
-                            <div className="issue-footer">
-                                <div className="issue-date">
-                                    Posted: {new Date(issue.postedDate).toLocaleDateString()}
-                                </div>
-                                <button 
-                                    className="apply-btn"
-                                    onClick={() => navigate('/worker?tab=issues')}
-                                >
-                                    Apply
-                                </button>
-                            </div>
-                        </div>
+                {error && (
+                    <div className="error-banner" style={{ marginBottom: 16 }}>{error}</div>
+                )}
+                <div className="issues-list">
+                    {availableIssues.slice(0, 5).map((issue) => (
+                        <button
+                            key={issue.id}
+                            className="issue-row"
+                            onClick={() => navigate('/worker?tab=issues')}
+                            title="Browse and apply"
+                        >
+                            <span className="status-dot" style={{ backgroundColor: getPriorityColor(issue.priority) }} />
+                            <span className="row-title">{issue.title}</span>
+                            <span className="row-badge">{issue.category}</span>
+                            <span className="row-priority" style={{ color: getPriorityColor(issue.priority) }}>{issue.priority}</span>
+                            <span className="row-date">{formatDate(issue.postedDate)}</span>
+                        </button>
                     ))}
                 </div>
             </div>
