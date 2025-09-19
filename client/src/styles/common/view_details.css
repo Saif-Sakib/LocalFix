@@ -15,6 +15,7 @@
 	right: 0;
 	bottom: 0;
 	background-color: rgba(15, 23, 42, 0.75);
+	-webkit-backdrop-filter: blur(8px);
 	backdrop-filter: blur(8px);
 	display: flex;
 	justify-content: center;
@@ -29,10 +30,12 @@
 @keyframes fadeIn {
 	from {
 		opacity: 0;
+		-webkit-backdrop-filter: blur(0px);
 		backdrop-filter: blur(0px);
 	}
 	to {
 		opacity: 1;
+		-webkit-backdrop-filter: blur(8px);
 		backdrop-filter: blur(8px);
 	}
 }
@@ -106,6 +109,7 @@
 
 .modal-close {
 	background: rgba(255, 255, 255, 0.15);
+	-webkit-backdrop-filter: blur(10px);
 	backdrop-filter: blur(10px);
 	border: 2px solid rgba(255, 255, 255, 0.2);
 	color: white;
@@ -436,6 +440,7 @@
 	border-radius: 16px;
 	padding: 28px;
 	line-height: 1.7;
+	-webkit-backdrop-filter: blur(10px);
 	backdrop-filter: blur(10px);
 	position: relative;
 	overflow: hidden;
@@ -520,16 +525,19 @@
 	justify-content: center;
 	opacity: 0;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	-webkit-backdrop-filter: blur(0px);
 	backdrop-filter: blur(0px);
 }
 
 .map-container:hover .map-overlay {
 	opacity: 1;
+	-webkit-backdrop-filter: blur(2px);
 	backdrop-filter: blur(2px);
 }
 
 .navigation-hint {
 	background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+	-webkit-backdrop-filter: blur(20px);
 	backdrop-filter: blur(20px);
 	padding: 16px 24px;
 	border-radius: 30px;
@@ -592,6 +600,7 @@
 	border: 1px solid rgba(203, 213, 225, 0.4);
 	border-radius: 16px;
 	padding: 28px;
+	-webkit-backdrop-filter: blur(10px);
 	backdrop-filter: blur(10px);
 	position: relative;
 	overflow: hidden;
@@ -656,6 +665,7 @@
 	color: #64748b;
 	text-align: center;
 	padding: 32px;
+	-webkit-backdrop-filter: blur(10px);
 	backdrop-filter: blur(10px);
 }
 
@@ -691,6 +701,7 @@
 /* Enhanced Modal Footer */
 .modal-footer {
 	background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.7) 100%);
+	-webkit-backdrop-filter: blur(20px);
 	backdrop-filter: blur(20px);
 	padding: 28px 32px;
 	display: flex;
@@ -933,6 +944,7 @@
 /* Backdrop: reduce blur and tint */
 .modal-overlay {
 	background-color: rgba(15, 23, 42, 0.45) !important;
+	-webkit-backdrop-filter: blur(3px) !important;
 	backdrop-filter: blur(3px) !important;
 }
 
@@ -987,7 +999,7 @@
 
 /* Map */
 .map-container { border: 1px solid var(--lf-border) !important; background: var(--lf-surface-alt) !important; border-radius: 12px !important; }
-.map-overlay { background: transparent !important; opacity: 1 !important; backdrop-filter: none !important; }
+.map-overlay { background: transparent !important; opacity: 1 !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .navigation-hint { background: rgba(255,255,255,0.9) !important; color: var(--lf-muted) !important; border: 1px solid var(--lf-border) !important; padding: 10px 14px !important; border-radius: 999px !important; }
 
 /* Image */
