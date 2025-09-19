@@ -2,6 +2,7 @@ import React,{useState} from "react";
 import Set_new_password from "./set_new_password";
 import Send_email from "../../utils/send_email";
 import '../../styles/common/change_password.css';
+import { useNavigate } from "react-router-dom";
 
 function Forgot_password({ onClose }) {
 
@@ -10,6 +11,7 @@ function Forgot_password({ onClose }) {
     const [email, set_email] = useState("");
     const [sent_otp, set_sent_otp] = useState(false);
     const [otp_verified, set_otp_verified] = useState(false);
+    const navigate = useNavigate();
 
     const send_otp = async (e) => {
         e.preventDefault();
@@ -46,7 +48,7 @@ function Forgot_password({ onClose }) {
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
-            onClose();
+            navigate("/auth");
         }
     }
 
@@ -54,7 +56,7 @@ function Forgot_password({ onClose }) {
         <div className="modal-overlay" onClick={handleBackdropClick}>
             <div className="modal-content">
                 <div className="modal-header">
-                    <button className="modal-close" onClick={onClose}>×</button>
+                    <button className="modal-close" onClick={handleBackdropClick}>×</button>
                 </div>
                 <div className="modal-body">
                     {!otp_verified  && (

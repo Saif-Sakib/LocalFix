@@ -202,7 +202,7 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 	// Render the modal at the document.body level to ensure it overlays the whole page
 	return ReactDOM.createPortal(
 		<div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Issue details dialog">
-				<div className="modal-container" onClick={(e) => e.stopPropagation()}>
+			<div className="modal-container" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
 					<h2 className="modal-title">Issue Details</h2>
 					<button className="modal-close" onClick={onClose} aria-label="Close modal">

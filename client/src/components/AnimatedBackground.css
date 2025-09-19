@@ -302,6 +302,7 @@
 .page-content .features,
 .page-content .form-box {
     background: rgba(255, 255, 255, 0.8) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
     backdrop-filter: blur(10px) !important;
     border-radius: 16px !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;

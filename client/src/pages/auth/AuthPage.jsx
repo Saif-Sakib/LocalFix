@@ -228,7 +228,7 @@ const AuthPage = () => {
                             <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                             Remember Me
                         </label>
-                        <Link to="/forgot_password" className="forgot-link">Forgot Password?</Link>
+                        <Link to="/forgot-password" className="forgot-link">Forgot Password?</Link>
                     </div>
                     <button type="submit" className="button">Login</button>
                     <p className="mobile-toggle">
