@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/worker/apply_job.css';
@@ -129,15 +130,65 @@ const ApplyJobModal = ({ isOpen, onClose, issueId, issueTitle }) => {
         return isNaN(numValue) ? '' : numValue.toFixed(2);
     };
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            const originalOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = originalOverflow || 'unset';
+            };
+        }
+    }, [isOpen]);
+
+    // Handle ESC key to close modal
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleEscKey = (event) => {
+            if (event.key === 'Escape') {
+                handleCancel();
+            }
+        };
+        document.addEventListener('keydown', handleEscKey);
+        return () => document.removeEventListener('keydown', handleEscKey);
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
-    return (
-        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && handleCancel()}>
-            <div className="apply-job-modal">
-                <div className="modal-header">
+    return ReactDOM.createPortal(
+        <div
+            className="apply-job-overlay"
+            onClick={(e) => e.target === e.currentTarget && handleCancel()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Apply for job dialog"
+            style={{
+                /* keep inline fallbacks minimal in case CSS doesn't load */
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <div
+                className="apply-job-modal"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    width: '100%',
+                    maxWidth: '720px',
+                    margin: 0,
+                    background: '#fff',
+                    borderRadius: '10px',
+                    boxShadow: '0 12px 28px rgba(0,0,0,0.2)',
+                    maxHeight: '90vh',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column'
+                }}
+            >
+                <div className="apply-job-header">
                     <h2>Apply for Job</h2>
                     <button 
-                        className="close-btn" 
+                        className="apply-job-close-btn" 
                         onClick={handleCancel}
                         disabled={isSubmitting}
                         aria-label="Close modal"
@@ -146,7 +197,7 @@ const ApplyJobModal = ({ isOpen, onClose, issueId, issueTitle }) => {
                     </button>
                 </div>
 
-                <div className="modal-content">
+                <div className="apply-job-content" style={{ padding: '1rem 1.25rem', overflowY: 'auto' }}>
                     <div className="job-info">
                         <h3>Job: {issueTitle}</h3>
                         <p>Please provide your estimated cost, completion time, and a detailed proposal for this job.</p>
@@ -261,7 +312,8 @@ const ApplyJobModal = ({ isOpen, onClose, issueId, issueTitle }) => {
                     </form>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

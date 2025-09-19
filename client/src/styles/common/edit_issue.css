@@ -1,0 +1,93 @@
+.edit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  z-index: 60;
+}
+
+.edit-modal {
+  width: min(720px, 100%);
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+
+.edit-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.edit-form {
+  padding: 16px 18px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.edit-field input,
+.edit-field select,
+.edit-field textarea {
+  border: 1px solid #e1e1e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.edit-btn-primary {
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.edit-btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.edit-error {
+  background: #fdecea;
+  color: #b71c1c;
+  border: 1px solid #f5c6cb;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.edit-loading { padding: 8px; color: #6b7280; }

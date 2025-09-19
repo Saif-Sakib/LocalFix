@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import '../../styles/common/change_password.css';
 
 function Set_new_password({ email, onComplete }) {
@@ -38,13 +39,30 @@ function Set_new_password({ email, onComplete }) {
         setSamePassword(new_password === confirmPwd);
     };
 
-    const reset_password = (e) => {
+    const reset_password = async (e) => {
         e.preventDefault();
-        console.log(email+" "+new_password);
-        // Add your password reset logic here
-        // Once successful, call onComplete if provided
-        if (onComplete) {
-            onComplete();
+        if (!same_password || !new_password) {
+            alert('Please ensure the passwords match and meet the requirements.');
+            return;
+        }
+        try {
+            let res;
+            if (email) {
+                // Forgot password flow (email provided)
+                res = await axios.post('/api/auth/reset-password', { email, newPassword: new_password });
+            } else {
+                // Authenticated change (no email prop expected)
+                res = await axios.post('/api/auth/update-password', { newPassword: new_password }, { withCredentials: true });
+            }
+            if (res.data?.success) {
+                alert('Password updated successfully');
+                if (onComplete) onComplete();
+            } else {
+                alert(res.data?.message || 'Failed to update password');
+            }
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to update password';
+            alert(msg);
         }
     }
 

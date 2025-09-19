@@ -25,18 +25,20 @@ router.get("/user/recent", authenticateToken, getUserRecentIssues);
 router.post("/", authenticateToken, createIssue);       
 router.get("/", getAllIssues);                          
 
+// Application routes - specific must come before parameterized
+router.get("/applications/pending", authenticateToken, getPendingApplications);
+
 // Parameterized routes (must come after specific routes)
 router.get("/:id", getIssueById);                       
-router.put("/:id", authenticateToken, authorize(['admin', 'citizen']), updateIssue);   
-router.delete("/:id", authenticateToken, authorize(['admin', 'citizen']), deleteIssue); 
+router.put("/:id", authenticateToken, authorize('admin', 'citizen'), updateIssue);   
+router.delete("/:id", authenticateToken, authorize('admin', 'citizen'), deleteIssue); 
 
 // Status management
-router.put("/:id/status", authenticateToken, authorize(['admin']), updateIssueStatus); 
+router.put("/:id/status", authenticateToken, authorize('admin'), updateIssueStatus); 
 
-// Application routes - MAIN APPLICATION ENDPOINT
-router.get("/applications/pending", authenticateToken, getPendingApplications);
+// Application routes for a specific issue
 router.post("/:id/apply", authenticateToken, applyForIssue);
-router.get("/:id/applications", authenticateToken, authorize(['admin', 'citizen']), getIssueApplications); 
+router.get("/:id/applications", authenticateToken, authorize('admin', 'citizen'), getIssueApplications); 
 router.put("/:id/applications/:applicationId/accept", authenticateToken, acceptIssueApplication); 
 router.put("/:id/applications/:applicationId/reject", authenticateToken, rejectIssueApplication); 
 

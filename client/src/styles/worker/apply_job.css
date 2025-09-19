@@ -1,17 +1,16 @@
-/* Apply Job Modal Styles */
-.modal-overlay {
+/* Apply Job Modal Styles (scoped) */
+.apply-job-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 2147483646;
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .apply-job-modal {
@@ -37,7 +36,7 @@
     }
 }
 
-.modal-header {
+.apply-job-modal .apply-job-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -48,13 +47,13 @@
     border-radius: 12px 12px 0 0;
 }
 
-.modal-header h2 {
+.apply-job-modal .apply-job-header h2 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
 }
 
-.close-btn {
+.apply-job-modal .apply-job-close-btn {
     background: none;
     border: none;
     font-size: 28px;
@@ -70,15 +69,15 @@
     transition: background-color 0.2s ease;
 }
 
-.close-btn:hover {
+.apply-job-modal .apply-job-close-btn:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.modal-content {
+.apply-job-modal .apply-job-content {
     padding: 24px;
 }
 
-.job-info {
+.apply-job-modal .job-info {
     margin-bottom: 24px;
     padding: 16px;
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -86,39 +85,39 @@
     border-left: 4px solid #667eea;
 }
 
-.job-info h3 {
+.apply-job-modal .job-info h3 {
     margin: 0 0 8px 0;
     color: #1e293b;
     font-size: 1.1rem;
     font-weight: 600;
 }
 
-.job-info p {
+.apply-job-modal .job-info p {
     margin: 0;
     color: #64748b;
     font-size: 0.9rem;
     line-height: 1.5;
 }
 
-.application-form {
+.apply-job-modal .application-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.form-group {
+.apply-job-modal .form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.form-group label {
+.apply-job-modal .form-group label {
     font-weight: 600;
     color: #374151;
     font-size: 0.9rem;
 }
 
-.form-group input {
+.apply-job-modal .form-group input {
     padding: 12px 16px;
     border: 2px solid #d1d5db;
     border-radius: 8px;
@@ -127,17 +126,17 @@
     background: #ffffff;
 }
 
-.form-group input:focus {
+.apply-job-modal .form-group input:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.form-group input::placeholder {
+.apply-job-modal .form-group input::placeholder {
     color: #9ca3af;
 }
 
-.proposal-textarea {
+.apply-job-modal .proposal-textarea {
     padding: 12px 16px;
     border: 2px solid #d1d5db;
     border-radius: 8px;
@@ -150,33 +149,33 @@
     line-height: 1.5;
 }
 
-.proposal-textarea:focus {
+.apply-job-modal .proposal-textarea:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.proposal-textarea::placeholder {
+.apply-job-modal .proposal-textarea::placeholder {
     color: #9ca3af;
 }
 
-.field-help {
+.apply-job-modal .field-help {
     color: #6b7280;
     font-size: 0.8rem;
     margin-top: 4px;
     line-height: 1.4;
 }
 
-.time-input-group {
+.apply-job-modal .time-input-group {
     display: flex;
     gap: 8px;
 }
 
-.time-input-group input {
+.apply-job-modal .time-input-group input {
     flex: 1;
 }
 
-.time-unit-select {
+.apply-job-modal .time-unit-select {
     padding: 12px 16px;
     border: 2px solid #d1d5db;
     border-radius: 8px;
@@ -187,13 +186,13 @@
     min-width: 100px;
 }
 
-.time-unit-select:focus {
+.apply-job-modal .time-unit-select:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.form-actions {
+.apply-job-modal .form-actions {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
@@ -202,7 +201,7 @@
     border-top: 1px solid #e5e7eb;
 }
 
-.btn-cancel {
+.apply-job-modal .btn-cancel {
     padding: 12px 24px;
     border: 2px solid #d1d5db;
     background: white;
@@ -214,13 +213,13 @@
     font-size: 0.9rem;
 }
 
-.btn-cancel:hover:not(:disabled) {
+.apply-job-modal .btn-cancel:hover:not(:disabled) {
     background: #f9fafb;
     border-color: #9ca3af;
     color: #374151;
 }
 
-.btn-submit {
+.apply-job-modal .btn-submit {
     padding: 12px 24px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -233,13 +232,13 @@
     min-width: 140px;
 }
 
-.btn-submit:hover:not(:disabled) {
+.apply-job-modal .btn-submit:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.btn-submit:disabled,
-.btn-cancel:disabled {
+.apply-job-modal .btn-submit:disabled,
+.apply-job-modal .btn-cancel:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none !important;
@@ -250,59 +249,59 @@
 @media (max-width: 768px) {
     .apply-job-modal {
         width: 95%;
-        margin: 20px;
+        margin: 0;
         max-height: calc(100vh - 40px);
     }
     
-    .modal-header {
+    .apply-job-modal .apply-job-header {
         padding: 16px 20px;
     }
     
-    .modal-header h2 {
+    .apply-job-modal .apply-job-header h2 {
         font-size: 1.3rem;
     }
     
-    .modal-content {
+    .apply-job-modal .apply-job-content {
         padding: 20px;
     }
     
-    .form-actions {
+    .apply-job-modal .form-actions {
         flex-direction: column-reverse;
     }
     
-    .btn-cancel,
-    .btn-submit {
+    .apply-job-modal .btn-cancel,
+    .apply-job-modal .btn-submit {
         width: 100%;
         justify-content: center;
     }
     
-    .time-input-group {
+    .apply-job-modal .time-input-group {
         flex-direction: column;
     }
     
-    .time-unit-select {
+    .apply-job-modal .time-unit-select {
         min-width: auto;
     }
     
-    .proposal-textarea {
+    .apply-job-modal .proposal-textarea {
         min-height: 120px;
         font-size: 16px; /* Prevents zoom on iOS */
     }
 }
 
 /* Loading state animation */
-.btn-submit:disabled {
+.apply-job-modal .btn-submit:disabled {
     background: linear-gradient(135deg, #94a3b8 0%, #94a3b8 100%);
 }
 
 /* Input validation styles */
-.form-group input:invalid,
-.proposal-textarea:invalid {
+.apply-job-modal .form-group input:invalid,
+.apply-job-modal .proposal-textarea:invalid {
     border-color: #ef4444;
 }
 
-.form-group input:invalid:focus,
-.proposal-textarea:invalid:focus {
+.apply-job-modal .form-group input:invalid:focus,
+.apply-job-modal .proposal-textarea:invalid:focus {
     border-color: #ef4444;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
@@ -314,6 +313,6 @@
     100% { transform: scale(1); }
 }
 
-.btn-submit.success {
+.apply-job-modal .btn-submit.success {
     animation: submitSuccess 0.3s ease;
 }

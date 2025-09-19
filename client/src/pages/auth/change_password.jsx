@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import Set_new_password from "./set_new_password";
 import '../../styles/common/change_password.css';
 
@@ -8,11 +9,19 @@ function Change_password({email , set_pop_up}) {
     const [verified,set_verified] = useState(false);
     const [show_password, set_show_new_password] = useState(false);
 
-    const check_password = (e) => {
+    const check_password = async (e) => {
         e.preventDefault();
-        // Add your password verification logic here
-        // For now, we'll assume it's verified
-        set_verified(true);
+        try {
+            const res = await axios.post('/api/auth/verify-password', { password }, { withCredentials: true });
+            if (res.data?.success) {
+                set_verified(true);
+            } else {
+                alert(res.data?.message || 'Password verification failed');
+            }
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Password verification failed';
+            alert(msg);
+        }
     }
 
     const handleBackdropClick = (e) => {
@@ -43,7 +52,7 @@ function Change_password({email , set_pop_up}) {
 
                     {verified && (
                         <Set_new_password
-                            email={email} 
+                            email={null}
                             onComplete={() => set_pop_up(false)}
                         />
                     )}

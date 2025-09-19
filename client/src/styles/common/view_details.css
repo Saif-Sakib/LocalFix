@@ -63,13 +63,14 @@
 
 /* Header */
 .modal-header {
-	background: var(--lf-surface);
-	color: var(--lf-text);
-	padding: 20px 24px;
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	border-bottom: 1px solid var(--lf-border);
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
 }
 
 .modal-title {
@@ -412,7 +413,11 @@
 	.section-header h3 { color: #0f172a; }
 	.detail-label { color: #475569; }
 	.detail-value { color: #0f172a; }
-	.modal-header { background: #ffffff; color: #0f172a; border-bottom-color: #e5e7eb; }
+	.modal-header {
+		border-bottom: 1px solid #e5e7eb;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		color: white;
+	}
 	.map-container { background: #f8fafc; border-color: #e5e7eb; }
 }
 

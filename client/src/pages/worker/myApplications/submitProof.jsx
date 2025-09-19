@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
 import '../../../styles/worker/submitProof.css';
 import axios from "axios";
 
@@ -25,7 +26,7 @@ const Submit_proof = ({ isOpen, onClose, onSubmitSuccess, issueId }) => {
 		}, 300);
 	};
 
-    const handleFileChange = (file) => {
+	const handleFileChange = (file) => {
         if (file && file.type.startsWith('image/')) {
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
@@ -70,11 +71,34 @@ const Submit_proof = ({ isOpen, onClose, onSubmitSuccess, issueId }) => {
         }
     };
 
+	// Prevent body scroll when modal is open
+	useEffect(() => {
+		if (isOpen) {
+			const originalOverflow = document.body.style.overflow;
+			document.body.style.overflow = 'hidden';
+			return () => {
+				document.body.style.overflow = originalOverflow || 'unset';
+			};
+		}
+	}, [isOpen]);
+
+	// Handle ESC key to close modal
+	useEffect(() => {
+		if (!isOpen) return;
+		const handleEscKey = (event) => {
+			if (event.key === 'Escape') {
+				handleClose();
+			}
+		};
+		document.addEventListener('keydown', handleEscKey);
+		return () => document.removeEventListener('keydown', handleEscKey);
+	}, [isOpen]);
+
 	if (!isOpen && !fadeOut) return null;
 
-	return (
-		<div className="modal-overlay">
-			<div className={`modal-content${fadeOut ? ' fade-out' : ''}`}>
+	return ReactDOM.createPortal(
+		<div className="modal-overlay" onClick={handleClose} role="dialog" aria-modal="true" aria-label="Submit proof dialog" style={{ zIndex: 1000 }}>
+			<div className={`modal-content${fadeOut ? ' fade-out' : ''}`} onClick={(e) => e.stopPropagation()}>
 				<h2>Submit Proof</h2>
 				<form onSubmit={handleFormSubmit}>
 					<label>Upload Image Proof:</label>
@@ -130,7 +154,8 @@ const Submit_proof = ({ isOpen, onClose, onSubmitSuccess, issueId }) => {
 					</div>
 				</form>
 			</div>
-		</div>
+		</div>,
+		document.body
 	);
 };
 

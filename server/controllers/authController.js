@@ -292,6 +292,76 @@ const updateProfile = async (req, res) => {
     }
 };
 
+// Verify current password for authenticated user
+const verifyPassword = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({ success: false, message: 'Password is required' });
+        }
+
+        // Fetch hashed password for user
+        const hashed = await User.getPasswordHash(userId);
+        if (!hashed) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const isValid = await User.verifyPassword(password, hashed);
+        if (!isValid) {
+            return res.status(401).json({ success: false, message: 'Invalid password' });
+        }
+
+        return res.json({ success: true, message: 'Password verified' });
+    } catch (error) {
+        console.error('Verify password error:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
+// Update password for authenticated user
+const updatePassword = async (req, res) => {
+    try {
+        const userId = req.user.user_id;
+        const { newPassword } = req.body;
+
+        if (!newPassword || newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
+        }
+
+        await User.update(userId, { password: newPassword });
+        return res.json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Update password error:', error);
+        return res.status(500).json({ success: false, message: 'Failed to update password' });
+    }
+};
+
+// Reset password by email (forgot password flow after OTP verification on client)
+const resetPassword = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+        if (!email || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Email and newPassword are required' });
+        }
+        if (newPassword.length < 8) {
+            return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
+        }
+
+        const user = await User.findByEmail(email);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        await User.update(user.user_id, { password: newPassword });
+        return res.json({ success: true, message: 'Password reset successfully' });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        return res.status(500).json({ success: false, message: 'Failed to reset password' });
+    }
+};
+
 // Update profile image
 const updateProfileImage = async (req, res) => {
     try {
@@ -435,5 +505,8 @@ module.exports = {
     updateProfileImage,
     removeProfileImage,
     deleteAccount,
-    refreshToken
+    refreshToken,
+    verifyPassword,
+    updatePassword,
+    resetPassword
 };

@@ -6,6 +6,15 @@ const path = require('path');
 const { executeQuery } = require('../config/database');
 
 class User {
+    static async getPasswordHash(userId) {
+        const sql = `SELECT hashed_pass FROM users WHERE user_id = :user_id`;
+        const result = await executeQuery(sql, [userId]);
+        if (!result.success) {
+            throw new Error(`Database error: ${result.error}`);
+        }
+        if (result.rows.length === 0) return null;
+        return result.rows[0].HASHED_PASS;
+    }
     static async findByEmail(email) {
         const sql = `SELECT user_id, name, email, phone, address, hashed_pass, user_type, status, img_url, created_at 
                      FROM users WHERE email = :email`;
