@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import Profile from "../common/profile";
 import PostIssue from "./postIssue";
-import MyJobs from "./myJobs";
+import MyJobs from "./mypost";
 import IssueList from "../common/IssueList";
 import CitizenHome from "./home";
 import "../../styles/common/dashboard.css";
