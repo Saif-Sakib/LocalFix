@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import ViewDetailsModal from '../common/view_details';
 import '../../styles/admin/review_problem.css';
@@ -9,64 +10,21 @@ function ReviewProblems() {
     const [selectedIssueId, setSelectedIssueId] = useState(null);
     const [showViewDetails, setShowViewDetails] = useState(false);
 
-    // Sample data for proof submissions
-    const sampleProofSubmissions = [
-        {
-            proof_id: 1,
-            issue_id: 21,
-            issue_title: "Broken Water Pipe on Main Road",
-            worker_id: 19,
-            worker_name: "Ahmed Rahman",
-            worker_email: "ahmed.rahman@email.com",
-            worker_phone: "+880 1712-345678",
-            worker_profile_image: "/uploads/profiles/profile-19-1757768759903-171969324.jpg",
-            proof_photo: "/uploads/proofs/1757683305611-777696439.png",
-            proof_description: "Water pipe has been successfully repaired. The leak has been stopped and water flow restored. All debris has been cleaned up and the road surface has been restored to its original condition.",
-            submitted_at: "2024-01-15T14:30:00Z",
-            verification_status: "pending",
-            issue_location: "Dhanmondi, Dhaka",
-            issue_category: "Water & Sanitation"
-        },
-        {
-            proof_id: 2,
-            issue_id: 18,
-            issue_title: "Pothole Repair on University Road",
-            worker_id: 22,
-            worker_name: "Fatima Khatun", 
-            worker_email: "fatima.khatun@email.com",
-            worker_phone: "+880 1798-765432",
-            worker_profile_image: "/uploads/profiles/profile-22-1757768759903-171969324.jpg",
-            proof_photo: "/uploads/proofs/1757671245721-747356743.png",
-            proof_description: "Pothole has been filled with high-quality asphalt. The surface has been leveled and compacted properly. Road marking has been restored where necessary.",
-            submitted_at: "2024-01-14T16:45:00Z",
-            verification_status: "pending",
-            issue_location: "Gulshan, Dhaka",
-            issue_category: "Roads & Transportation"
-        },
-        {
-            proof_id: 3,
-            issue_id: 15,
-            issue_title: "Street Light Installation",
-            worker_id: 25,
-            worker_name: "Mohammad Ali",
-            worker_email: "mohammad.ali@email.com", 
-            worker_phone: "+880 1556-987654",
-            worker_profile_image: "/uploads/profiles/profile-25-1757768759903-171969324.jpg",
-            proof_photo: "/uploads/proofs/1757312892735-781821559.png",
-            proof_description: "New LED street light has been installed and tested. All electrical connections are secure and the light is functioning properly. Installation meets all safety standards.",
-            submitted_at: "2024-01-13T10:20:00Z",
-            verification_status: "pending",
-            issue_location: "Uttara, Dhaka",
-            issue_category: "Electricity & Lighting"
-        }
-    ];
-
     useEffect(() => {
-        // Simulate loading delay
-        setTimeout(() => {
-            setProofSubmissions(sampleProofSubmissions);
-            setLoading(false);
-        }, 1000);
+        const fetchPending = async () => {
+            try {
+                setLoading(true);
+                const res = await axios.get(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/proofs/pending`, {
+                    withCredentials: true
+                });
+                setProofSubmissions(res.data.proofs || []);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPending();
     }, []);
 
     const handleViewDetails = (issueId) => {
@@ -74,28 +32,26 @@ function ReviewProblems() {
         setShowViewDetails(true);
     };
 
-    const handleAcceptProof = (proofId) => {
-        setProofSubmissions(prev => 
-            prev.map(submission => 
-                submission.proof_id === proofId 
-                    ? { ...submission, verification_status: 'approved' }
-                    : submission
-            )
-        );
-        alert('Worker Paid successfully!');
+    const handleAcceptProof = async (proofId) => {
+        const feedback = window.prompt('Optional feedback for approval (visible to worker):', '');
+        try {
+            await axios.put(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/proofs/${proofId}/approve`, { feedback }, { withCredentials: true });
+            setProofSubmissions(prev => prev.filter(s => s.proof_id !== proofId));
+        } catch (e) {
+            console.error(e);
+            alert('Failed to approve proof');
+        }
     };
 
-    const handleRequestRevision = (proofId) => {
-        const feedback = prompt('Please provide feedback for revision:');
-        if (feedback) {
-            setProofSubmissions(prev => 
-                prev.map(submission => 
-                    submission.proof_id === proofId 
-                        ? { ...submission, verification_status: 'revision_requested', admin_feedback: feedback }
-                        : submission
-                )
-            );
-            alert('Revision request sent to worker!');
+    const handleRequestRevision = async (proofId) => {
+        const feedback = prompt('Please provide feedback for rejection:');
+        if (!feedback) return;
+        try {
+            await axios.put(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/proofs/${proofId}/reject`, { feedback }, { withCredentials: true });
+            setProofSubmissions(prev => prev.filter(s => s.proof_id !== proofId));
+        } catch (e) {
+            console.error(e);
+            alert('Failed to reject proof');
         }
     };
 
@@ -214,7 +170,7 @@ function ReviewProblems() {
                                                     onClick={() => handleAcceptProof(submission.proof_id)}
                                                 >
                                                     <span className="btn-icon">✅</span>
-                                                    Pay Now
+                                                    Approve
                                                 </button>
                                                 
                                                 <button 

@@ -4,7 +4,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { submitProof } = require("../controllers/jobProofController");
+const { submitProof, getPendingProofs, approveProof, rejectProof } = require("../controllers/jobProofController");
 const { authenticateToken, authorize } = require('../middleware/auth');
 
 // Multer setup for proof uploads
@@ -26,5 +26,10 @@ const upload = multer({ storage: proofStorage() });
 
 // POST route to submit proof
 router.post("/", authenticateToken, authorize('worker'), upload.single('image'), submitProof);
+
+// Admin routes for reviewing proofs
+router.get("/pending", authenticateToken, authorize('admin'), getPendingProofs);
+router.put("/:proofId/approve", authenticateToken, authorize('admin'), approveProof);
+router.put("/:proofId/reject", authenticateToken, authorize('admin'), rejectProof);
 
 module.exports = router;

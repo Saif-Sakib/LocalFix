@@ -21,91 +21,12 @@ function WorkerPayment() {
         amount: ''
     });
 
-    // Sample payment data - replace with actual API calls
     const [paymentData, setPaymentData] = useState({
-        currentBalance: 15750.50,
-        totalEarnings: 45200.75,
+        currentBalance: 0,
+        totalEarnings: 0,
         currency: 'BDT',
-        recentIncomes: [
-            {
-                id: 1,
-                description: "Road Pothole Repair - Main Street",
-                amount: 1200.00,
-                date: "2025-09-20",
-                status: "Completed",
-                issueId: "ISS-001"
-            },
-            {
-                id: 2,
-                description: "Traffic Light Maintenance - Downtown",
-                amount: 850.00,
-                date: "2025-09-18",
-                status: "Completed",
-                issueId: "ISS-002"
-            },
-            {
-                id: 3,
-                description: "Park Bench Replacement - Central Park",
-                amount: 650.00,
-                date: "2025-09-17",
-                status: "Completed",
-                issueId: "ISS-003"
-            },
-            {
-                id: 4,
-                description: "Street Light Repair - Oak Avenue",
-                amount: 950.00,
-                date: "2025-09-15",
-                status: "Completed",
-                issueId: "ISS-004"
-            },
-            {
-                id: 5,
-                description: "Sidewalk Crack Filling - Elm Street",
-                amount: 450.75,
-                date: "2025-09-14",
-                status: "Completed",
-                issueId: "ISS-005"
-            }
-        ],
-        recentWithdrawals: [
-            {
-                id: 1,
-                method: "bKash",
-                accountNumber: "01712345678",
-                amount: 5000.00,
-                date: "2025-09-16",
-                status: "Successful",
-                transactionId: "TXN001"
-            },
-            {
-                id: 2,
-                method: "Rocket",
-                accountNumber: "01798765432",
-                amount: 3000.00,
-                date: "2025-09-10",
-                status: "Successful",
-                transactionId: "TXN002"
-            },
-            {
-                id: 3,
-                method: "Nagad",
-                accountNumber: "01534567890",
-                amount: 2500.00,
-                date: "2025-09-05",
-                status: "Pending",
-                transactionId: "TXN003"
-            },
-            {
-                id: 4,
-                method: "Sonali Bank",
-                accountNumber: "1234567890123",
-                amount: 10000.00,
-                date: "2025-09-01",
-                status: "Successful",
-                transactionId: "TXN004"
-            }
-        ]
+        recentIncomes: [],
+        recentWithdrawals: []
     });
 
     // Memoized payment methods to avoid recreation on each render
@@ -117,12 +38,32 @@ function WorkerPayment() {
     ], []);
 
     useEffect(() => {
-        // Simulate loading time - reduced from 1000ms to 500ms
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 500);
-
-        return () => clearTimeout(timer);
+        const load = async () => {
+            try {
+                setLoading(true);
+                const base = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+                const [summaryRes, withdrawalsRes] = await Promise.all([
+                    axios.get(`${base}/api/payments/worker/summary`, { withCredentials: true }),
+                    axios.get(`${base}/api/payments/worker/withdrawals`, { withCredentials: true })
+                ]);
+                const summary = summaryRes.data || { currentBalance: 0, totalEarnings: 0, recentIncomes: [] };
+                const withdrawals = (withdrawalsRes.data?.withdrawals || []).slice(0, 5);
+                setPaymentData(prev => ({
+                    ...prev,
+                    currentBalance: summary.currentBalance || 0,
+                    totalEarnings: summary.totalEarnings || 0,
+                    currency: summary.currency || 'BDT',
+                    recentIncomes: summary.recentIncomes || [],
+                    recentWithdrawals: withdrawals
+                }));
+            } catch (e) {
+                console.error(e);
+                setError('Failed to load payment info');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     }, []);
 
     // Memoized input change handler to prevent recreation
@@ -150,24 +91,28 @@ function WorkerPayment() {
                 throw new Error("Invalid withdrawal amount");
             }
 
-            // Simulate withdrawal processing - reduced timeout
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            // Add new withdrawal to recent withdrawals
-            const newWithdrawal = {
-                id: Date.now(),
-                method: paymentMethods.find(m => m.value === withdrawalForm.method)?.label,
+            // Call API to create withdrawal
+            const base = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+            await axios.post(`${base}/api/payments/worker/withdrawals`, {
+                method: withdrawalForm.method,
                 accountNumber: withdrawalForm.accountNumber,
-                amount: amount,
-                date: new Date().toISOString().split('T')[0],
-                status: "Processing",
-                transactionId: `TXN${Date.now()}`
-            };
+                amount
+            }, { withCredentials: true });
 
+            // Refresh summary and withdrawals
+            const [summaryRes, withdrawalsRes] = await Promise.all([
+                axios.get(`${base}/api/payments/worker/summary`, { withCredentials: true }),
+                axios.get(`${base}/api/payments/worker/withdrawals`, { withCredentials: true })
+            ]);
+            const summary = summaryRes.data || { currentBalance: 0, totalEarnings: 0, recentIncomes: [] };
+            const withdrawals = (withdrawalsRes.data?.withdrawals || []).slice(0, 5);
             setPaymentData(prev => ({
                 ...prev,
-                currentBalance: prev.currentBalance - amount,
-                recentWithdrawals: [newWithdrawal, ...prev.recentWithdrawals.slice(0, 4)] // Keep only 5 items
+                currentBalance: summary.currentBalance || 0,
+                totalEarnings: summary.totalEarnings || 0,
+                currency: summary.currency || 'BDT',
+                recentIncomes: summary.recentIncomes || [],
+                recentWithdrawals: withdrawals
             }));
 
             // Reset form
@@ -187,7 +132,8 @@ function WorkerPayment() {
 
     // Memoized currency formatter
     const formatCurrency = useCallback((amount) => {
-        return `৳${amount.toLocaleString('en-BD', { minimumFractionDigits: 2 })}`;
+        const n = Number(amount || 0);
+        return `৳${n.toLocaleString('en-BD', { minimumFractionDigits: 2 })}`;
     }, []);
 
     // Memoized payment method icon function  
@@ -234,8 +180,8 @@ function WorkerPayment() {
         <AnimatedBackground>
             <div className="worker-payment">
                 <div className="payment-header">
-                    <h1>Payment & Withdrawal</h1>
-                    <p>Manage your earnings and withdraw funds</p>
+                    <h1>Earnings & Withdrawals</h1>
+                    <p>Review your earnings and request withdrawals</p>
                 </div>
 
                 {/* Balance Overview */}

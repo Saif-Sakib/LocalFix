@@ -159,7 +159,7 @@ function WorkerDashboard() {
                             style={currentTab === "Payment" ? { backgroundColor: "#bcd6fbff" } : {}}
                         >
                             <i className="bx bx-money"></i>
-                            <span>Payments</span>
+                            <span>Earnings</span>
                         </button>
                     </div>
                 </div>

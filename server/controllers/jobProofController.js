@@ -168,8 +168,161 @@ async function updateProofProgress(req, res) {
   }
 }
 
+// Admin: list pending proofs for review
+async function getPendingProofs(req, res) {
+  try {
+    const result = await executeQuery(
+      `SELECT 
+        ip.proof_id,
+        ip.issue_id,
+        ip.worker_id,
+        ip.proof_photo,
+        TO_CHAR(ip.proof_description) as proof_description,
+        ip.submitted_at,
+        ip.verification_status,
+        i.title as issue_title,
+  i.status as issue_status,
+  i.category as issue_category,
+        l.full_address as issue_location,
+        u.name as worker_name,
+        u.email as worker_email,
+        u.phone as worker_phone,
+        u.img_url as worker_profile_image
+      FROM issue_proofs ip
+      JOIN issues i ON ip.issue_id = i.issue_id
+      JOIN locations l ON i.location_id = l.location_id
+      JOIN users u ON ip.worker_id = u.user_id
+      WHERE ip.verification_status = 'pending'
+      ORDER BY ip.submitted_at DESC`
+    );
+
+    if (!result.success) {
+      return res.status(500).json({ message: 'Failed to fetch pending proofs', error: result.error });
+    }
+
+    const proofs = result.rows.map(r => ({
+      proof_id: r.PROOF_ID,
+      issue_id: r.ISSUE_ID,
+      issue_title: r.ISSUE_TITLE,
+  issue_status: r.ISSUE_STATUS,
+  issue_category: r.ISSUE_CATEGORY,
+      issue_location: r.ISSUE_LOCATION,
+      worker_id: r.WORKER_ID,
+      worker_name: r.WORKER_NAME,
+      worker_email: r.WORKER_EMAIL,
+      worker_phone: r.WORKER_PHONE,
+      worker_profile_image: r.WORKER_PROFILE_IMAGE,
+      proof_photo: r.PROOF_PHOTO,
+      proof_description: r.PROOF_DESCRIPTION,
+      submitted_at: r.SUBMITTED_AT,
+      verification_status: r.VERIFICATION_STATUS
+    }));
+
+    res.json({ proofs });
+  } catch (err) {
+    console.error('Error in getPendingProofs:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+// Admin: approve a proof with optional feedback
+async function approveProof(req, res) {
+  const admin_id = req.user.user_id;
+  const { proofId } = req.params;
+  const { feedback } = req.body;
+
+  try {
+    // Ensure proof exists and is pending
+    const check = await executeQuery(
+      `SELECT verification_status FROM issue_proofs WHERE proof_id = :proofId`,
+      { proofId }
+    );
+    if (!check.success || check.rows.length === 0) {
+      return res.status(404).json({ message: 'Proof not found' });
+    }
+    const status = check.rows[0].VERIFICATION_STATUS;
+    if (status !== 'pending') {
+      return res.status(400).json({ message: `Cannot approve a proof in '${status}' status.` });
+    }
+
+    const result = await executeQuery(
+      `UPDATE issue_proofs
+       SET verification_status = 'approved',
+           admin_feedback = :feedback,
+           verified_by = :admin_id,
+           verified_at = CURRENT_TIMESTAMP
+       WHERE proof_id = :proofId`,
+      { feedback: feedback || null, admin_id, proofId }
+    );
+
+    if (!result.success) {
+      return res.status(500).json({ message: 'Failed to approve proof', error: result.error });
+    }
+    if (result.rowsAffected === 0) {
+      return res.status(404).json({ message: 'Proof not found or already processed' });
+    }
+
+    // Issue status updated to 'resolved' by trigger in DB
+    res.json({ message: 'Proof approved successfully' });
+  } catch (err) {
+    console.error('Error in approveProof:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+// Admin: reject a proof with required feedback
+async function rejectProof(req, res) {
+  const admin_id = req.user.user_id;
+  const { proofId } = req.params;
+  const { feedback } = req.body;
+
+  if (!feedback || !feedback.trim()) {
+    return res.status(400).json({ message: 'Feedback is required when rejecting a proof' });
+  }
+
+  try {
+    const check = await executeQuery(
+      `SELECT verification_status FROM issue_proofs WHERE proof_id = :proofId`,
+      { proofId }
+    );
+    if (!check.success || check.rows.length === 0) {
+      return res.status(404).json({ message: 'Proof not found' });
+    }
+    const status = check.rows[0].VERIFICATION_STATUS;
+    if (status !== 'pending') {
+      return res.status(400).json({ message: `Cannot reject a proof in '${status}' status.` });
+    }
+
+    const result = await executeQuery(
+      `UPDATE issue_proofs
+       SET verification_status = 'rejected',
+           admin_feedback = :feedback,
+           verified_by = :admin_id,
+           verified_at = CURRENT_TIMESTAMP
+       WHERE proof_id = :proofId`,
+      { feedback: feedback.trim(), admin_id, proofId }
+    );
+
+    if (!result.success) {
+      return res.status(500).json({ message: 'Failed to reject proof', error: result.error });
+    }
+    if (result.rowsAffected === 0) {
+      return res.status(404).json({ message: 'Proof not found or already processed' });
+    }
+
+    // Issue status updated to 'in_progress' by trigger in DB
+    res.json({ message: 'Proof rejected successfully with feedback' });
+  } catch (err) {
+    console.error('Error in rejectProof:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 module.exports = { 
   submitProof,
   getProofStatus,
-  updateProofProgress
+  updateProofProgress,
+  getPendingProofs,
+  approveProof,
+  rejectProof
 };

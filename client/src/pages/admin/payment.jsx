@@ -13,90 +13,61 @@ function AdminPayment() {
     const [error, setError] = useState('');
     const [paymentProcessing, setPaymentProcessing] = useState(false);
     
-    // Sample data - replace with actual API calls
     const [paymentData, setPaymentData] = useState({
-        remainingBalance: 2750.50,
-        currency: 'USD',
-        workItems: [
-            {
-                id: 1,
-                workDescription: "Road Pothole Repair - Main Street",
-                workerName: "John Smith",
-                completionDate: "2025-09-15",
-                cost: 450.00,
-                status: "Paid",
-                issueId: "ISS-001"
-            },
-            {
-                id: 2,
-                workDescription: "Traffic Light Maintenance - Downtown",
-                workerName: "Sarah Johnson", 
-                completionDate: "2025-09-18",
-                cost: 320.00,
-                status: "Paid",
-                issueId: "ISS-002"
-            },
-            {
-                id: 3,
-                workDescription: "Park Bench Replacement - Central Park",
-                workerName: "Mike Wilson",
-                completionDate: "2025-09-19",
-                cost: 180.75,
-                status: "Paid",
-                issueId: "ISS-003"
-            },
-            {
-                id: 4,
-                workDescription: "Street Light Repair - Oak Avenue",
-                workerName: "Emily Davis",
-                completionDate: "2025-09-20",
-                cost: 275.50,
-                status: "Pending Payment",
-                issueId: "ISS-004"
-            },
-            {
-                id: 5,
-                workDescription: "Sidewalk Crack Filling - Elm Street",
-                workerName: "Robert Brown",
-                completionDate: "2025-09-17",
-                cost: 195.25,
-                status: "Paid",
-                issueId: "ISS-005"
-            }
-        ]
+        remainingBalance: 0,
+        currency: 'BDT',
+        workItems: []
     });
 
     useEffect(() => {
-        // Simulate loading time
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
-
-        return () => clearTimeout(timer);
+        const fetchPayments = async () => {
+            try {
+                setLoading(true);
+                const res = await axios.get(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/payments/pending`, { withCredentials: true });
+                const data = res.data || { remainingBalance: 0, currency: 'BDT', workItems: [] };
+                // add id for rendering key
+                setPaymentData({
+                    remainingBalance: data.remainingBalance,
+                    currency: data.currency || 'BDT',
+                    workItems: (data.workItems || []).map((w, idx) => ({ id: idx + 1, ...w }))
+                });
+            } catch (e) {
+                console.error(e);
+                setError('Failed to load pending payments');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchPayments();
     }, []);
 
     const handlePayNow = async () => {
         setPaymentProcessing(true);
-        
-        // Simulate payment processing
         try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Update payment status for all pending items
-            setPaymentData(prev => ({
-                ...prev,
-                workItems: prev.workItems.map(item => ({
-                    ...item,
-                    status: item.status === "Pending Payment" ? "Paid" : item.status
+            const toPay = paymentData.workItems.filter(i => i.status === 'Pending Payment');
+            if (toPay.length === 0) return;
+            const payload = {
+                payments: toPay.map(i => ({
+                    issueId: i.issueId || i.issue_id || i.issueId,
+                    proofId: i.proofId,
+                    workerId: i.workerId,
+                    citizenId: i.citizenId,
+                    amount: i.cost,
+                    method: 'bkash'
                 }))
-            }));
-            
-            alert("Payment processed successfully!");
-            setPaymentData(prev => ({
-                ...prev,
-                remainingBalance: prev.remainingBalance - getTotalAmount()
-            }));
+            };
+            await axios.post(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/payments`, payload, { withCredentials: true });
+            alert('Payment processed successfully!');
+            // refresh list
+            const res = await axios.get(`${import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'}/api/payments/pending`, { withCredentials: true });
+            const data = res.data || { remainingBalance: 0, currency: 'BDT', workItems: [] };
+            setPaymentData({
+                remainingBalance: data.remainingBalance,
+                currency: data.currency || 'BDT',
+                workItems: (data.workItems || []).map((w, idx) => ({ id: idx + 1, ...w }))
+            });
         } catch (error) {
+            console.error(error);
             setError("Payment processing failed. Please try again.");
         } finally {
             setPaymentProcessing(false);
@@ -156,8 +127,8 @@ function AdminPayment() {
             <div className="admin-payment">
                 
                 <div className="payment-header">
-                    <h1>Payment Management</h1>
-                    <p>Manage payments for completed work orders</p>
+                    <h1>Payouts Management</h1>
+                    <p>Manage payouts for completed work orders</p>
                 </div>
 
                 {/* Balance Overview */}
@@ -204,7 +175,7 @@ function AdminPayment() {
                                 <div className="item-header">
                                     <div className="item-title">
                                         <h3>{item.workDescription}</h3>
-                                        <span className="issue-id">Issue: {item.issueId}</span>
+                                        <span className="issue-id">Issue: {item.issueId || item.issue_id}</span>
                                     </div>
                                 </div>
                                 
@@ -249,12 +220,12 @@ function AdminPayment() {
                             {paymentProcessing ? (
                                 <>
                                     <div className="btn-spinner"></div>
-                                    Processing Payment...
+                                    Processing Payouts...
                                 </>
                             ) : (
                                 <>
                                     <i className="fas fa-credit-card"></i>
-                                    Pay Now
+                                    Send Payouts
                                 </>
                             )}
                         </button>

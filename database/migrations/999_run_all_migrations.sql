@@ -64,6 +64,9 @@ PROMPT === Step 16: Stored Procedures ===
 PROMPT === Step 17: Additional Constraints ===
 -- @016_additional_constraints_indexes.sql
 
+PROMPT === Step 19: Withdrawals Table ===
+-- @019_create_withdrawals_table.sql
+
 -- Verification queries to check if everything is set up correctly
 PROMPT === Verification: Checking Tables ===
 SELECT 'Table: ' || table_name || ' - Rows: ' || num_rows as status

@@ -111,16 +111,59 @@ UPDATE applications SET status = 'accepted', reviewed_by = 2 WHERE issue_id = 4 
 UPDATE applications SET status = 'accepted', reviewed_by = 1 WHERE issue_id = 5 AND worker_id = 5;
 UPDATE applications SET status = 'accepted', reviewed_by = 1 WHERE issue_id = 6 AND worker_id = 8;
 
+-- In case triggers are not yet loaded, explicitly set assignment on issues
+UPDATE issues SET status = 'assigned', assigned_worker_id = 8 WHERE issue_id = 3;
+UPDATE issues SET status = 'assigned', assigned_worker_id = 4 WHERE issue_id = 4;
+UPDATE issues SET status = 'assigned', assigned_worker_id = 5 WHERE issue_id = 5;
+UPDATE issues SET status = 'assigned', assigned_worker_id = 8 WHERE issue_id = 6;
+
 -- ##################################################################
 -- 5. WORKERS START WORK & SUBMIT PROOF
 -- ##################################################################
 -- For issue 5, worker starts the job.
 UPDATE issues SET status = 'in_progress' WHERE issue_id = 5;
 
--- For issue 6, worker submits proof. The trigger moves issue from 'assigned' -> 'in_progress' -> 'under_review'.
+-- For issue 6, worker submits proof. The trigger moves the issue to 'under_review'.
 INSERT INTO issue_proofs (issue_id, worker_id, proof_photo, proof_description, submitted_at) VALUES (6, 8, 'https://example.com/proofs/park_after1.jpg', 'Park maintenance completed. Grass cut, trees pruned, and area cleaned. Before and after photos attached showing significant improvement.', CURRENT_TIMESTAMP - 1);
 
 -- ##################################################################
--- 8. COMMIT
+-- 6. ADMIN REVIEWS & APPROVES PROOF (Issue 6 becomes 'resolved')
+-- ##################################################################
+-- Admin (user_id = 1) approves the submitted proof for issue 6
+UPDATE issue_proofs
+SET verification_status = 'approved',
+	admin_feedback = 'Verified. Good work and clean finish.',
+	verified_by = 1,
+	verified_at = CURRENT_TIMESTAMP
+WHERE issue_id = 6;
+
+-- After approval, the trigger updates the related issue (issue_id = 6) status to 'resolved'.
+
+-- ##################################################################
+-- 7. ADMIN SENDS PAYOUT FOR RESOLVED ISSUE (Issue 6 becomes 'closed')
+-- ##################################################################
+-- We pay the worker based on the accepted application for issue 6.
+-- From applications: (issue_id=6, worker_id=8) estimated_cost = 1200.00
+INSERT INTO payments (issue_id, citizen_id, worker_id, amount, payment_method, payment_status, transaction_id, payment_date)
+VALUES (6, 16, 8, 1200.00, 'bkash', 'completed', 'BKASH-TEST-0001', CURRENT_TIMESTAMP);
+
+-- Payment trigger sets issue (issue_id = 6) status to 'closed'.
+
+-- ##################################################################
+-- 8. OPTIONAL: WORKER WITHDRAWAL (partial cashout from balance)
+-- ##################################################################
+-- Worker 8 requests a withdrawal against their earnings
+INSERT INTO withdrawals (worker_id, method, account_number, amount, status, requested_at)
+VALUES (8, 'bkash', '01877777777', 500.00, 'processing', CURRENT_TIMESTAMP);
+
+-- ##################################################################
+-- 9. OPTIONAL: CITIZEN RATING FOR COMPLETED ISSUE
+-- ##################################################################
+-- Citizen 16 rates the worker 8 for issue 6
+INSERT INTO ratings (issue_id, citizen_id, worker_id, rating, review_comment)
+VALUES (6, 16, 8, 4.5, 'Great job! Park looks much better now.');
+
+-- ##################################################################
+-- 10. COMMIT
 -- ##################################################################
 COMMIT;
