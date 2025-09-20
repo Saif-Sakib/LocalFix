@@ -15,10 +15,19 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 
 	useEffect(() => {
 		if (isOpen && issueId) {
+			// Reset state for new issue view
+			setIssue(null);
+			setImageError(false);
 			fetchIssueDetails();
 			fetchMapboxToken();
 		}
 	}, [isOpen, issueId]);
+
+	// Ensure image error resets when the actual image URL changes
+	useEffect(() => {
+		if (!isOpen) return;
+		setImageError(false);
+	}, [issue?.IMAGE_URL, isOpen]);
 
 	const fetchMapboxToken = async () => {
 		try {
@@ -248,13 +257,13 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 									</div>
 									<div className="detail-item">
 										<span className="detail-label">Priority:</span>
-										<span className={`detail-value priority-badge ${getPriorityClass(issue.PRIORITY)}`}>
-											{issue.PRIORITY?.toUpperCase() || 'MEDIUM'}
+										<span className="detail-value">
+											{issue.PRIORITY?.toUpperCase()}
 										</span>
 									</div>
 									<div className="detail-item">
 										<span className="detail-label">Status:</span>
-										<span className={`detail-value status-badge ${getStatusClass(issue.STATUS)}`}>
+										<span className="detail-value">
 											{getStatusDisplayText(issue.STATUS)}
 										</span>
 									</div>
@@ -326,28 +335,6 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 								</div>
 							</div>
 
-							<div className="detail-section">
-								<div className="section-header">
-									<h3>Project Details</h3>
-								</div>
-								<div className="project-details">
-									<div className="detail-item">
-										<span className="detail-label">Estimated Cost:</span>
-										<span className="detail-value cost-value">৳{(Math.random() * 50000 + 5000).toLocaleString()} BDT</span>
-									</div>
-									<div className="detail-item">
-										<span className="detail-label">Estimated Deadline:</span>
-										<span className="detail-value deadline-value">
-											{new Date(new Date(issue.CREATED_AT).getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-												year: 'numeric',
-												month: 'long',
-												day: 'numeric'
-											})}
-										</span>
-									</div>
-								</div>
-							</div>
-
 							{/* Citizen Information */}
 							{issue.CITIZEN_NAME && (
 								<div className="detail-section">
@@ -384,12 +371,14 @@ const ViewDetailsModal = ({ isOpen, onClose, issueId }) => {
 									<div className="image-container">
 										{!imageError ? (
 											<img 
+												key={`${issue.ID}-${issue.IMAGE_URL}`}
 												src={buildImageUrl(issue.IMAGE_URL)}
 												alt="Issue"
 												className="issue-image"
 												onError={handleImageError}
 												onLoad={handleImageLoad}
 												loading="lazy"
+												crossOrigin="anonymous"
 											/>
 										) : (
 											<div className="image-error-placeholder">

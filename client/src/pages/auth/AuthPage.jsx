@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import Signup_verification from './signup_verification';
 import '../../styles/common/auth.css'; // Make sure this path is correct
 
 const AuthPage = () => {
@@ -43,6 +44,11 @@ const AuthPage = () => {
     const [focus_name, setFocusName] = useState(false);
     const [focus_password, setFocusPassword] = useState(false);
     const [focus_confirm_password, setFocusConfirmPassword] = useState(false);
+
+    // Email verification states
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [pendingSignupData, setPendingSignupData] = useState(null);
 
     // Redirect if already authenticated
     useEffect(() => {
@@ -105,33 +111,69 @@ const AuthPage = () => {
         if (!/^01[0-9]{9}$/.test(number)) {
             return toast.error('Phone number must be 11 digits starting with 01');
         }
-        const loadingToast = toast.loading('Creating account...');
-        const result = await register({
-            name, email: signupEmail, phone: number, address,
-            password: signupPassword, user_type: signupUserType
+        
+        // Store signup data and show verification modal
+        setPendingSignupData({
+            name, 
+            email: signupEmail, 
+            phone: number, 
+            address,
+            password: signupPassword, 
+            user_type: signupUserType
         });
-        toast.dismiss(loadingToast);
-        if (result.success) {
-            toast.success('Account created successfully!');
-            setIsLoginView(true);
-        } else {
-            toast.error(result.message || 'Registration failed');
-            if (result.errors) {
-                result.errors.forEach(error => toast.error(error.msg));
+        setShowVerificationModal(true);
+        toast.success('Please verify your email to complete registration');
+    };
+
+    // Handle registration after email verification
+    const completeRegistration = async () => {
+        if (otpVerified && pendingSignupData) {
+            const loadingToast = toast.loading('Creating account...');
+            const result = await register(pendingSignupData);
+            toast.dismiss(loadingToast);
+            if (result.success) {
+                toast.success('Account created successfully!');
+                setIsLoginView(true);
+                // Reset all signup states
+                setName('');
+                setSignupEmail('');
+                setNumber('');
+                setAddress('');
+                setSignupPassword('');
+                setConfirmPassword('');
+                setSignupUserType('');
+                setPendingSignupData(null);
+                setOtpVerified(false);
+            } else {
+                toast.error(result.message || 'Registration failed');
+                if (result.errors) {
+                    result.errors.forEach(error => toast.error(error.msg));
+                }
             }
         }
     };
 
+    // Watch for email verification completion
+    useEffect(() => {
+        if (otpVerified && pendingSignupData) {
+            completeRegistration();
+        }
+    }, [otpVerified, pendingSignupData]);
+
     return (
         <AnimatedBackground>
-            <div 
+            <div
                 className={`container ${!isLoginView ? "signup-active" : ""}`}
-                style={{minWidth: '60vw',marginTop:'20px'}}
+                style={{minWidth: '60vw',marginTop:'20vh',minHeight:'100vh'}}
             >
             {/* Signup Form Container */}
             <div className="form-box register">
                 <form onSubmit={onSignup}>
-                    <h1>Create Account</h1>
+                    <h1
+                        style={{marginTop: '50px'}}
+                    >
+                        Create Account
+                    </h1>
                     <div className="form-group">
                         <div className="input-box">
                             <input type="text" placeholder="Full Name" value={name} onFocus={() => setFocusName(true)} onBlur={() => setFocusName(false)} onChange={(e) => e.target.value.length <= 50 && setName(e.target.value)} required />
@@ -253,6 +295,15 @@ const AuthPage = () => {
                 </div>
             </div>
             </div>
+            
+            {/* Email Verification Modal */}
+            {showVerificationModal && (
+                <Signup_verification 
+                    email={signupEmail}
+                    set_otp_verified={setOtpVerified}
+                    set_show_verification_modal={setShowVerificationModal}
+                />
+            )}
         </AnimatedBackground>
     );
 };

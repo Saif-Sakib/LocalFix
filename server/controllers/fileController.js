@@ -90,7 +90,7 @@ class FileController {
             const fileStats = uploadService.getFileStats(folder, filename);
 
             // Set CORS headers explicitly for cross-origin requests
-            const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+            const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
             res.set({
                 'Access-Control-Allow-Origin': clientUrl,
                 'Access-Control-Allow-Credentials': 'true',
