@@ -1,0 +1,561 @@
+/* Worker Payment Page Styles - Optimized for Performance */
+.worker-payment {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #f8fafc;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    position: relative;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading States */
+.payment-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    gap: 16px;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.payment-error {
+    text-align: center;
+    padding: 40px;
+    color: #dc2626;
+}
+
+.retry-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-top: 16px;
+    cursor: pointer;
+}
+
+/* Header Section */
+.payment-header {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.payment-header h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #059669;
+    margin-bottom: 8px;
+}
+
+.payment-header p {
+    font-size: 1.1rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Balance Overview */
+.balance-overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.balance-card {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.balance-card.current {
+    background: #059669;
+    color: white;
+    border-color: #047857;
+}
+
+.balance-card.total {
+    background: #3b82f6;
+    color: white;
+    border-color: #2563eb;
+}
+
+.balance-info h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+
+.balance-amount {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.balance-note {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.balance-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.balance-icon svg {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+/* Withdrawal Section */
+.withdrawal-section {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.section-header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.section-header p {
+    color: #64748b;
+    margin: 0;
+}
+
+.withdrawal-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Payment Methods */
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.payment-method {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.payment-method:hover {
+    border-color: #059669;
+    background: #f0fdf4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+}
+
+.payment-method.selected {
+    border-color: #059669;
+    background: #059669;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
+}
+
+.payment-method input {
+    display: none;
+}
+
+.method-icon {
+    font-size: 1.75rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+}
+
+.method-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.method-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.method-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Form Inputs */
+.form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* Withdraw Button */
+.withdraw-btn {
+    width: 100%;
+    background: #059669;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 16px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+    transition: background-color 0.2s ease;
+}
+
+.withdraw-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.withdraw-btn:hover:not(:disabled) {
+    background: #047857;
+}
+
+.withdraw-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.withdraw-btn.processing {
+    background: #6b7280;
+}
+
+.btn-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Transactions Section */
+.transactions-section {
+    margin-bottom: 32px;
+}
+
+.transactions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.transaction-list {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.list-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.list-count {
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.transaction-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #f1f5f9;
+}
+
+.transaction-item:hover {
+    background: #f8fafc;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.transaction-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.transaction-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    border-radius: 2px;
+}
+
+.transaction-item.income .transaction-icon {
+    background: #dcfce7;
+    color: #059669;
+}
+
+.transaction-item.withdrawal .transaction-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.transaction-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.transaction-details h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.transaction-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0 0 8px 0;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.transaction-amount.income {
+    color: #059669;
+}
+
+.transaction-amount.withdrawal {
+    color: #dc2626;
+}
+
+.status-failed {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.status-default {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Animations - Minimal for performance */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.transaction-item {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Icon utility classes */
+.icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-md {
+    width: 20px;
+    height: 20px;
+}
+
+.icon-lg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .worker-payment {
+        padding: 16px;
+        border-radius: 0;
+    }
+
+    .payment-header h1 {
+        font-size: 1.875rem;
+    }
+
+    .balance-overview {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .balance-card {
+        padding: 24px;
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .balance-amount {
+        font-size: 1.875rem;
+    }
+
+    .balance-icon {
+        font-size: 2rem;
+    }
+
+    .balance-icon svg {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .method-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .method-icon img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .method-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .withdrawal-section {
+        padding: 24px 16px;
+    }
+
+    .payment-methods {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .transactions-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .transaction-item {
+        padding: 12px;
+    }
+
+    .transaction-details h4 {
+        font-size: 0.9rem;
+    }
+
+    .transaction-amount {
+        font-size: 0.9rem;
+    }
+}

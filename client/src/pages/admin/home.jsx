@@ -161,10 +161,10 @@ function AdminHome() {
             count: stats.underReviewIssues
         },
         {
-            title: 'System Reports',
-            description: 'Generate and view system reports',
-            icon: '📊',
-            action: () => navigate('/admin?tab=reports'),
+            title: 'Payment Management',
+            description: 'Process worker payments and manage transactions',
+            icon: '💰',
+            action: () => navigate('/admin?tab=payment'),
             color: '#8b5cf6',
             count: null
         }

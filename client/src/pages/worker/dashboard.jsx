@@ -5,6 +5,7 @@ import Profile from "../common/profile";
 import IssueList from "../common/IssueList";
 import MyApplications from "./myApplications/myApplications";
 import WorkerHome from "./home";
+import WorkerPayment from "./payment";
 import "../../styles/common/dashboard.css";
 
 function WorkerDashboard() {
@@ -25,7 +26,8 @@ function WorkerDashboard() {
             'profile': 'Profile',
             'issues': 'Issues',
             'my-applications': 'MyApplications',
-            'home': 'Home'
+            'home': 'Home',
+            'payment': 'Payment'
         };
 
         if (tab && tabMapping[tab]) {
@@ -68,7 +70,8 @@ function WorkerDashboard() {
             'Profile': 'profile',
             'Issues': 'issues',
             'MyApplications': 'my-applications',
-            'Home': 'home'
+            'Home': 'home',
+            'Payment': 'payment'
         };
 
         const urlTab = tabUrlMapping[tab] || 'home';
@@ -93,6 +96,8 @@ function WorkerDashboard() {
                 return <IssueList />;
             case "MyApplications":
                 return <MyApplications />;
+            case "Payment":
+                return <WorkerPayment />;
             default:
                 return <WorkerHome />;
         }
@@ -147,6 +152,14 @@ function WorkerDashboard() {
                         >
                             <i className="bx bx-time"></i>
                             <span>My Applications</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleTabChange("Payment")}
+                            style={currentTab === "Payment" ? { backgroundColor: "#bcd6fbff" } : {}}
+                        >
+                            <i className="bx bx-money"></i>
+                            <span>Payments</span>
                         </button>
                     </div>
                 </div>
