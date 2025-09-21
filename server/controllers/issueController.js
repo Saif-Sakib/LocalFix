@@ -85,14 +85,11 @@ async function getAllIssues(req, res) {
   try {
     const result = await executeQuery(
       `SELECT 
-        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
-        i.created_at, i.updated_at, u.name as citizen_name, u.email as citizen_email,
-        u.phone as citizen_phone, l.full_address as location_address, l.upazila,
-        l.district, l.latitude, l.longitude
-      FROM issues i
-      LEFT JOIN users u ON i.citizen_id = u.user_id
-      LEFT JOIN locations l ON i.location_id = l.location_id
-      ORDER BY i.created_at DESC`
+        issue_id, title, description, category, priority, image_url, status,
+        created_at, updated_at, citizen_name, citizen_email, citizen_phone,
+        full_address as location_address, upazila, district, latitude, longitude
+       FROM v_issues_with_details
+       ORDER BY created_at DESC`
     );
 
     if (result.success) {
@@ -135,14 +132,11 @@ async function getIssueById(req, res) {
   try {
     const result = await executeQuery(
       `SELECT 
-        i.issue_id, i.title, i.description, i.category, i.priority, i.image_url, i.status,
-        i.created_at, i.updated_at, u.name as citizen_name, u.email as citizen_email,
-        u.phone as citizen_phone, l.full_address as location_address, l.upazila,
-        l.district, l.latitude, l.longitude
-      FROM issues i
-      LEFT JOIN users u ON i.citizen_id = u.user_id
-      LEFT JOIN locations l ON i.location_id = l.location_id
-      WHERE i.issue_id = :id`, { id }
+        issue_id, title, description, category, priority, image_url, status,
+        created_at, updated_at, citizen_name, citizen_email, citizen_phone,
+        full_address as location_address, upazila, district, latitude, longitude
+       FROM v_issues_with_details
+       WHERE issue_id = :id`, { id }
     );
 
     if (result.success) {
@@ -194,22 +188,18 @@ async function updateIssueStatus(req, res) {
         message: "Invalid status. Must be one of: " + validStatuses.join(', ')
       });
     }
-
-    const result = await executeQuery(
-      `UPDATE issues SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE issue_id = :id`, 
-      { status, id }
+    // Use stored procedure for validated status update (demonstrates PL/SQL usage)
+    const callResult = await executeQuery(
+      `BEGIN set_issue_status_safe(:id, :status); END;`,
+      { id, status }
     );
 
-    if (result.success) {
-      if (result.rowsAffected === 0) {
-        return res.status(404).json({ message: "Issue not found" });
-      }
+    if (callResult.success) {
       res.json({ 
-        message: "Issue status updated successfully!",
-        rowsAffected: result.rowsAffected
+        message: "Issue status updated successfully via procedure!"
       });
     } else {
-      const errorMessage = getErrorMessage(result.error);
+      const errorMessage = getErrorMessage(callResult.error);
       console.error("Database error:", errorMessage);
       res.status(500).json({ 
         message: "Error updating issue status",

@@ -36,11 +36,6 @@ const ApplyJobModal = ({ isOpen, onClose, issueId, issueTitle }) => {
             return;
         }
 
-        if (proposalDescription.trim().length < 50) {
-            setError('Proposal description must be at least 50 characters long');
-            return;
-        }
-
         setIsSubmitting(true);
 
         try {
@@ -285,10 +280,9 @@ const ApplyJobModal = ({ isOpen, onClose, issueId, issueTitle }) => {
                                 required
                                 disabled={isSubmitting}
                                 className="proposal-textarea"
-                                minLength={50}
                             />
                             <small className="field-help">
-                                {proposalDescription.length}/50 minimum characters. Include your experience, methodology, and competitive advantages.
+                                Include your experience, methodology, and competitive advantages.
                             </small>
                         </div>
 

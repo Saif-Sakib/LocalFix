@@ -14,7 +14,6 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_type ON users(user_type);
 
--- Fixed trigger with proper terminator
 CREATE OR REPLACE TRIGGER trg_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
