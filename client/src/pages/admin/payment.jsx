@@ -133,7 +133,7 @@ function AdminPayment() {
 
                 {/* Balance Overview */}
                 <div className="balance-section">
-                    <div className="balance-card">
+                    <div className="balance-card" style={{backgroundColor: 'green'}}>
                         <div className="balance-info">
                             <h2>Remaining Balance</h2>
                             <div className="balance-amount">
